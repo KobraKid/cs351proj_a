@@ -21,7 +21,7 @@ var tick = function() {
   g_angle = animate(g_angle);
   requestAnimationFrame(tick, g_canvas);
 };
-var g_step = 6.0;
+var g_step = 8.0; // [4, +inf]
 
 /**
  * Main function.
@@ -53,41 +53,42 @@ function main() {
 }
 
 function initVBO() {
-  // Circle: {start: 0, len: (g_step * 2) + 2}
-  cap = [0.0, 0.0, 0.0, 1.0];
-  for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
-    cap.push(Math.cos(theta));
-    cap.push(Math.sin(theta));
-    cap.push(0);
-    cap.push(1);
-  }
+  pos = [];
   colors = [];
+
+  /* CYLINDER */
+  // Circle: {start: 0, len: (g_step * 2) + 2}
+  pos.push(0, 0, 0, 1);
+  for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
+    pos.push(Math.cos(theta), Math.sin(theta), 0, 1);
+  }
   for (var i = 0; i < (g_step * 2) + 2 + 1; i++) {
-    colors.push(Math.random());
-    colors.push(Math.random());
-    colors.push(Math.random());
-    colors.push(1.0);
+    colors.push(Math.random(), Math.random(), Math.random(), 1);
   }
 
   // Tube: {start: (g_step * 2) + 2, len: (g_step * 4) + 2}
   for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
-    cap.push(Math.cos(theta));
-    cap.push(Math.sin(theta));
-    cap.push(0);
-    cap.push(1);
-    cap.push(Math.cos(theta));
-    cap.push(Math.sin(theta));
-    cap.push(1);
-    cap.push(1);
+    pos.push(Math.cos(theta), Math.sin(theta), 0, 1);
+    pos.push(Math.cos(theta), Math.sin(theta), 1, 1);
   }
   for (var i = 0; i < (g_step * 4) + 2; i++) {
-    colors.push(Math.random());
-    colors.push(Math.random());
-    colors.push(Math.random());
-    colors.push(1.0);
+    colors.push(Math.random(), Math.random(), Math.random(), 1);
   }
 
-  appendPositions(cap);
+  /* CONE */
+  // Tip: {start: (g_step * 6) + 4, len: 1}
+  pos.push(0, 0, 1, 1);
+  colors.push(1, 1, 1, 1);
+  // Circumfrence: {start: (g_step * 6) + 5, len: (g_step * 2) + 2}
+  for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
+    pos.push(Math.cos(theta), Math.sin(theta), 0, 1);
+  }
+  for (var i = 0; i < (g_step * 2) + 2 + 1; i++) {
+    colors.push(Math.random(), Math.random(), Math.random(), 1);
+  }
+
+  console.log(pos);
+  appendPositions(pos);
   appendColors(colors);
 }
 
@@ -96,8 +97,10 @@ function draw() {
 
   ModelMatrix.setTranslate(0, 0, 0);
   ModelMatrix.setScale(g_aspect, 1, 1);
+  ModelMatrix.translate(0.5, 0, 0);
 
-  ModelMatrix.scale(0.6, 0.6, 0.6);
+  /* Draw Cylinder */
+  ModelMatrix.scale(0.5, 0.5, 0.5);
   ModelMatrix.rotate(g_angle, 1, 1, 1);
   updateModelMatrix(ModelMatrix);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
@@ -108,6 +111,20 @@ function draw() {
   ModelMatrix.rotate(180, 1, 0, 0);
   updateModelMatrix(ModelMatrix);
   gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
+
+  ModelMatrix.setTranslate(0, 0, 0);
+  ModelMatrix.setScale(g_aspect, 1, 1);
+  ModelMatrix.translate(-0.5, 0, 0);
+
+  /* Draw Cone */
+  ModelMatrix.scale(0.5, 0.5, 0.5);
+  ModelMatrix.rotate(g_angle, 1, 1, 1);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 4, (g_step * 2) + 2);
+  ModelMatrix.rotate(180, 1, 0, 0);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
+
 }
 
 function animate(angle) {
