@@ -11,7 +11,6 @@
 var gl;
 var g_canvas;
 var ModelMatrix;
-var matricies = [];
 var g_aspect = window.innerHeight / window.innerWidth;
 var g_last = Date.now();
 var g_angle = 0.0;
@@ -22,6 +21,7 @@ var tick = function() {
   g_angle = animate(g_angle);
   requestAnimationFrame(tick, g_canvas);
 };
+var g_step = 6.0;
 
 /**
  * Main function.
@@ -53,88 +53,61 @@ function main() {
 }
 
 function initVBO() {
-  // Triangle vertices
-  appendPositions([0.0, 0.0, 1.0, 1.0,
-                   1.0, 0.0, 0.0, 1.0,
-                   0.0, 1.0, 1.0, 1.0,
-                   1.0, 1.0, 0.0, 1.0,
-                   0.0, 0.0, 0.0, 1.0,
-                  ]);
-  appendColors([1.0, 0.0, 0.0, 1.0,
-                0.0, 1.0, 0.0, 1.0,
-                0.0, 0.0, 1.0, 1.0,
-                1.0, 0.0, 0.0, 1.0,
-              ]);
+  // Circle: {start: 0, len: (g_step * 2) + 2}
+  cap = [0.0, 0.0, 0.0, 1.0];
+  for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
+    cap.push(Math.cos(theta));
+    cap.push(Math.sin(theta));
+    cap.push(0);
+    cap.push(1);
+  }
+  colors = [];
+  for (var i = 0; i < (g_step * 2) + 2 + 1; i++) {
+    colors.push(Math.random());
+    colors.push(Math.random());
+    colors.push(Math.random());
+    colors.push(1.0);
+  }
+
+  // Tube: {start: (g_step * 2) + 2, len: (g_step * 4) + 2}
+  for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
+    cap.push(Math.cos(theta));
+    cap.push(Math.sin(theta));
+    cap.push(0);
+    cap.push(1);
+    cap.push(Math.cos(theta));
+    cap.push(Math.sin(theta));
+    cap.push(1);
+    cap.push(1);
+  }
+  for (var i = 0; i < (g_step * 4) + 2; i++) {
+    colors.push(Math.random());
+    colors.push(Math.random());
+    colors.push(Math.random());
+    colors.push(1.0);
+  }
+
+  appendPositions(cap);
+  appendColors(colors);
 }
 
 function draw() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  // Guideline points
-  ModelMatrix.setTranslate(0, 0, 0);
-  ModelMatrix.setRotate(0, 1, 1, 1);
-  ModelMatrix.setScale(g_aspect, 1, 1);
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.POINTS, 4, 1);
-
   ModelMatrix.setTranslate(0, 0, 0);
   ModelMatrix.setScale(g_aspect, 1, 1);
-  ModelMatrix.setRotate(g_angle, 0, 0, 1);
 
-  pushMatrix(ModelMatrix);
-
-  // 'Leg'
-  // ModelMatrix.rotate(g_angle, 0, 0, 1);
-  ModelMatrix.scale(0.05, 0.25, 1);
-  ModelMatrix.translate(-0.5, 0, 0);
+  ModelMatrix.scale(0.6, 0.6, 0.6);
+  ModelMatrix.rotate(g_angle, 1, 1, 1);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
 
-  ModelMatrix = popMatrix();
+  gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 2) + 2, (g_step * 4) + 2);
 
-  ModelMatrix.translate(0, 0.25, 0);
-  pushMatrix(ModelMatrix);
-  ModelMatrix.rotate(-g_angle/3, 0, 0, 1);
-  ModelMatrix.scale(0.05 * 0.67, 0.25 * 0.5, 1);
-  ModelMatrix.translate(-0.5, 0, 0);
+  ModelMatrix.translate(0, 0, 1);
+  ModelMatrix.rotate(180, 1, 0, 0);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-  ModelMatrix = popMatrix();
-
-  ModelMatrix.rotate(-g_angle/3, 0, 0, 1);
-  ModelMatrix.translate(0, 0.125, 0);
-  pushMatrix(ModelMatrix);
-  ModelMatrix.rotate(-g_angle/3, 0, 0, 1);
-  ModelMatrix.scale(0.05 * 0.67 * 0.67, 0.25 * 0.5 * 0.5, 1);
-  ModelMatrix.translate(-0.5, 0, 0);
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-  ModelMatrix = popMatrix();
-
-  ModelMatrix.rotate(-g_angle/3, 0, 0, 1);
-  ModelMatrix.translate(0, 0.0625, 0);
-  pushMatrix(ModelMatrix);
-  ModelMatrix.rotate(-g_angle/3, 0, 0, 1);
-  ModelMatrix.scale(0.05 * 0.67 * 0.67, 0.25 * 0.5 * 0.5, 1);
-  ModelMatrix.translate(-0.5, 0, 0);
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-  ModelMatrix = popMatrix();
-
-  ModelMatrix.rotate(-g_angle/3, 0, 0, 1);
-  ModelMatrix.translate(0, 0.0625, 0);
-  pushMatrix(ModelMatrix);
-  ModelMatrix.rotate(-g_angle/3, 0, 0, 1);
-  ModelMatrix.scale(0.05 * 0.67 * 0.67, 0.25 * 0.5 * 0.5, 1);
-  ModelMatrix.translate(-0.5, 0, 0);
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-
-  ModelMatrix = popMatrix();
-
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
 }
 
 function animate(angle) {
@@ -142,10 +115,8 @@ function animate(angle) {
   var elapsed = now - g_last;
   g_last = now;
   var newAngle = angle + (g_angleRate * elapsed * (dir * -1)) / 1000.0;
-  // if(newAngle > 180.0) newAngle = newAngle - 360.0;
-  // if(newAngle <-180.0) newAngle = newAngle + 360.0;
-  if(newAngle > 120.0) {newAngle = 120.0; dir = -dir;}
-  if(newAngle <-120.0) {newAngle =-120.0; dir = -dir;}
+  if(newAngle > 180.0) newAngle = newAngle - 360.0;
+  if(newAngle <-180.0) newAngle = newAngle + 360.0;
   return newAngle;
 }
 
