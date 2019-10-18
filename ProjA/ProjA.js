@@ -24,11 +24,11 @@ var tick = function() {
  */
 function main() {
   /* Init vars */
-  gl = init();
-  g_canvas = document.getElementById('webgl');
   // Fix canvas size
+  g_canvas = document.getElementById('webgl');
   g_canvas.width = window.innerWidth;
   g_canvas.height = window.innerHeight;
+  gl = init();
   ModelMatrix = new Matrix4();
   updateModelMatrix(ModelMatrix);
   gl.clearColor(0, 0, 0, 1.0);
