@@ -14,6 +14,8 @@ var ModelMatrix;
 var g_aspect = window.innerHeight / window.innerWidth;
 var g_last = Date.now();
 var g_angle = 0.0;
+var cattail_count = 6;
+var g_cattails = [];
 var g_cattail_last = Date.now();
 var g_cattail_sway = 0.0;
 var g_cattail_max_sway = 8.0;
@@ -43,7 +45,7 @@ function main() {
   gl = init();
   ModelMatrix = new Matrix4();
   updateModelMatrix(ModelMatrix);
-  gl.clearColor(0, 0, 0, 1.0);
+  gl.clearColor(0.5, 0.7, 1, 1.0);
 
   /* Init VBO */
   initVBO();
@@ -53,6 +55,11 @@ function main() {
   window.addEventListener("mousedown", myMouseDown);
   window.addEventListener("mousemove", myMouseMove);
 	window.addEventListener("mouseup", myMouseUp);
+
+  /* Randomize forest */
+  for (var i = 0; i < cattail_count; i++) {
+    g_cattails.push([Math.random() - 0.5, 0, Math.random() - 0.5]);
+  }
 
   /* Start main draw loop */
   tick();
@@ -108,85 +115,93 @@ function draw() {
   ModelMatrix.setScale(g_aspect, 1, 1);
   ModelMatrix.rotate(g_angle, 0, 1, 0);
 
-  /* Group: Cattail */
-  pushMatrix(ModelMatrix);
-
-  // Group: Stalk
-  pushMatrix(ModelMatrix);
-
-  // Object: Stem
-  var stalk_divisions = 12.0;
-  var stalk_height = 1.0;
-  ModelMatrix.translate(0, -1, 0);
-
-  for (var i = 0; i < stalk_divisions; i++) {
-    pushMatrix(ModelMatrix);
-    ModelMatrix.rotate(270, 1, 0, 0);
-    ModelMatrix.rotate(g_cattail_sway / stalk_divisions * i, 0, 1, 0);
-    ModelMatrix.translate(0, 0, 0.99/stalk_divisions * i);
-    ModelMatrix.rotate(g_cattail_sway / stalk_divisions * i, 0, 1, 0);
-    ModelMatrix.scale(0.02, 0.02, stalk_height/stalk_divisions);
-    updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 8) + 6, (g_step * 4) + 2);
-    ModelMatrix = popMatrix();
+  for (var i = 0; i < cattail_count; i++) {
+    drawCattail(g_cattails[i][0], g_cattails[i][1], g_cattails[i][2]);
   }
+}
 
-  // TODO: Object: Leaf
-  // gl.drawArrays(...);
+function drawCattail(c_x, c_y, c_z) {
+    /* Group: Cattail */
+    pushMatrix(ModelMatrix);
+    ModelMatrix.translate(c_x, c_y, c_z);
 
-  // End Group: Stalk
-  ModelMatrix = popMatrix();
+    // Group: Stalk
+    pushMatrix(ModelMatrix);
 
-  // Group: Head
-  ModelMatrix.translate(0, -1, 0);
-  ModelMatrix.rotate(-g_cattail_sway, 0, 0, 1);
-  ModelMatrix.translate(0, 1, 0);
-  ModelMatrix.rotate(-g_cattail_sway, 0, 0, 1);
-  pushMatrix(ModelMatrix);
+    // Object: Stem
+    var stalk_divisions = 12.0;
+    var stalk_height = 1.0;
+    ModelMatrix.translate(0, -1, 0);
 
-  // Object: Head
-  ModelMatrix.rotate(270, 1, 0, 0);
-  ModelMatrix.scale(0.05, 0.05, 0.3);
-  ModelMatrix.translate(0, 0, 0.05);
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 2) + 2, (g_step * 4) + 2);
+    for (var i = 0; i < stalk_divisions; i++) {
+      pushMatrix(ModelMatrix);
+      ModelMatrix.rotate(270, 1, 0, 0);
+      ModelMatrix.rotate(g_cattail_sway / stalk_divisions * i, 0, 1, 0);
+      ModelMatrix.translate(0, 0, 0.99/stalk_divisions * i);
+      ModelMatrix.rotate(g_cattail_sway / stalk_divisions * i, 0, 1, 0);
+      ModelMatrix.scale(0.02, 0.02, stalk_height/stalk_divisions);
+      updateModelMatrix(ModelMatrix);
+      gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 8) + 6, (g_step * 4) + 2);
+      ModelMatrix = popMatrix();
+    }
 
-  ModelMatrix = popMatrix();
-  pushMatrix(ModelMatrix);
-  ModelMatrix.scale(0.05, 0.05, 1);
-  ModelMatrix.translate(0, 0.5, 0);
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
+    // TODO: Object: Leaf
+    // gl.drawArrays(...);
 
-  ModelMatrix = popMatrix();
-  pushMatrix(ModelMatrix);
-  ModelMatrix.scale(0.05, 0.05, 1);
-  ModelMatrix.translate(0, 6, 0);
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
+    // End Group: Stalk
+    ModelMatrix = popMatrix();
 
-  // End Group: Head
-  ModelMatrix = popMatrix();
+    // Group: Head
+    ModelMatrix.translate(0, -1, 0);
+    ModelMatrix.rotate(-g_cattail_sway, 0, 0, 1);
+    ModelMatrix.translate(0, 1, 0);
+    ModelMatrix.rotate(-g_cattail_sway, 0, 0, 1);
+    pushMatrix(ModelMatrix);
 
-  // Group: Tip
-  pushMatrix(ModelMatrix);
+    // Object: Head
+    ModelMatrix.rotate(270, 1, 0, 0);
+    ModelMatrix.scale(0.05, 0.05, 0.3);
+    ModelMatrix.translate(0, 0, 0.05);
+    updateModelMatrix(ModelMatrix);
+    gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 2) + 2, (g_step * 4) + 2);
 
-  // Object: Tip
-  ModelMatrix.translate(0, 0.33, 0);
-  ModelMatrix.rotate(270, 1, 0, 0);
-  ModelMatrix.scale(0.01, 0.01, 0.25); // w, d, h
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 4, (g_step * 2) + 2);
-  ModelMatrix.rotate(180, 1, 0, 0);
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
+    ModelMatrix = popMatrix();
+    pushMatrix(ModelMatrix);
+    ModelMatrix.translate(0, 0.025, 0);
+    ModelMatrix.rotate(-g_angle, 0, 1, 0);
+    ModelMatrix.scale(0.05, 0.05, 1);
+    updateModelMatrix(ModelMatrix);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2); // TODO Draw sphere
 
-  // End Group: Tip
-  ModelMatrix = popMatrix();
+    ModelMatrix = popMatrix();
+    pushMatrix(ModelMatrix);
+    ModelMatrix.translate(0, 0.3125, 0);
+    ModelMatrix.rotate(-g_angle, 0, 1, 0);
+    ModelMatrix.scale(0.05, 0.05, 1);
+    updateModelMatrix(ModelMatrix);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2); // TODO Draw sphere
 
-  /* End Group: Cattail */
-  ModelMatrix = popMatrix();
+    // End Group: Head
+    ModelMatrix = popMatrix();
 
+    // Group: Tip
+    pushMatrix(ModelMatrix);
+
+    // Object: Tip
+    ModelMatrix.translate(0, 0.33, 0);
+    ModelMatrix.rotate(270, 1, 0, 0);
+    ModelMatrix.scale(0.01, 0.01, 0.25); // w, d, h
+    updateModelMatrix(ModelMatrix);
+    gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 4, (g_step * 2) + 2);
+    ModelMatrix.rotate(180, 1, 0, 0);
+    updateModelMatrix(ModelMatrix);
+    gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
+
+    // End Group: Tip
+    ModelMatrix = popMatrix();
+
+    /* End Group: Cattail */
+    ModelMatrix = popMatrix();
 }
 
 function animate(angle) {
