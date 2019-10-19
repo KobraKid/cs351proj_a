@@ -14,7 +14,7 @@ var ModelMatrix;
 var g_aspect = window.innerHeight / window.innerWidth;
 var g_last = Date.now();
 var g_angle = 0.0;
-var cattail_count = 6;
+var cattail_count = 1;
 var g_cattails = [];
 var g_cattail_last = Date.now();
 var g_cattail_sway = 0.0;
@@ -24,12 +24,41 @@ var g_cattail_rate = 8.0;
 var dir = -1.0;
 var g_angleRate = 45.0;
 var tick = function() {
-  draw();
-  g_angle = animate(g_angle);
-  g_cattail_sway = sway(g_cattail_sway);
-  requestAnimationFrame(tick, g_canvas);
+  if (tracker.animate_toggle) {
+    draw();
+    g_angle = animate(g_angle);
+    if (tracker.cattail_sway) { g_cattail_sway = sway(g_cattail_sway); }
+    requestAnimationFrame(tick, g_canvas);
+  }
 };
 var g_step = 8.0; // [4, +inf]
+
+var g_isDrag=false;
+var g_xMclik=0.0;
+var g_yMclik=0.0;
+var g_xMdragTot=0.0;
+var g_yMdragTot=0.0;
+
+var GuiTracker = function() {
+  this.global_x_pos = 0;
+  this.global_y_pos = 0;
+  this.global_z_pos = 0;
+  this.global_x_scale = 1;
+  this.global_y_scale = 1;
+  this.global_z_scale = 1;
+  this.global_x_rot = 0;
+  this.global_y_rot = 0;
+  this.global_z_rot = 0;
+  this.animate_toggle = true;
+  this.cattail_sway = true;
+  this.reset = function() {
+      this.global_x_pos = this.global_y_pos = this.global_z_pos = 0;
+      this.global_x_rot = this.global_y_rot = this.global_z_rot = 0;
+      this.global_x_scale = this.global_y_scale = this.global_z_scale = 1;
+      draw();
+  };
+}
+var tracker = new GuiTracker();
 
 /**
  * Main function.
@@ -47,7 +76,8 @@ function main() {
   updateModelMatrix(ModelMatrix);
   gl.clearColor(0.5, 0.7, 1, 1.0);
 
-  /* Init VBO */
+  /* Init Functions */
+  initGui();
   initVBO();
 
   /* Init event listeners */
@@ -63,6 +93,42 @@ function main() {
 
   /* Start main draw loop */
   tick();
+}
+
+function initGui() {
+  var gui = new dat.GUI({name: 'My GUI'});
+  var anim = gui.addFolder('Animations');
+  var controller = anim.add(tracker, 'animate_toggle').listen();
+  controller.onChange(function(value) {
+    if (value) {
+      g_last = g_cattail_last = Date.now();
+      tick();
+    }
+  });
+  var controller2 = anim.add(tracker, 'cattail_sway');
+  controller2.onChange(function(value) {
+    if (value) {
+      g_cattail_last = Date.now();
+    }
+  });
+  anim.open();
+  var position = gui.addFolder('Position');
+  position.add(tracker, 'global_x_pos', -2, 2).listen();
+  position.add(tracker, 'global_y_pos', -2, 2).listen();
+  position.add(tracker, 'global_z_pos', -2, 2).listen();
+  // position.open();
+  var scale = gui.addFolder('Scale');
+  scale.add(tracker, 'global_x_scale', 0.1, 4);
+  scale.add(tracker, 'global_y_scale', 0.1, 4);
+  scale.add(tracker, 'global_z_scale', 0.1, 4);
+  // scale.open();
+  var rotate = gui.addFolder('Rotation');
+  rotate.add(tracker, 'global_x_rot', -360, 360).listen();
+  rotate.add(tracker, 'global_y_rot', -360, 360).listen();
+  rotate.add(tracker, 'global_z_rot', -360, 360).listen();
+  // rotate.open();
+  gui.add(tracker, 'reset');
+  gui.close();
 }
 
 function initVBO() {
@@ -113,7 +179,11 @@ function draw() {
 
   ModelMatrix.setTranslate(0, 0, 0);
   ModelMatrix.setScale(g_aspect, 1, 1);
-  ModelMatrix.rotate(g_angle, 0, 1, 0);
+  ModelMatrix.translate(tracker.global_x_pos, tracker.global_y_pos, tracker.global_z_pos);
+  ModelMatrix.rotate(tracker.global_x_rot, 1, 0, 0);
+  ModelMatrix.rotate(tracker.global_y_rot, 0, 1, 0);
+  ModelMatrix.rotate(tracker.global_z_rot, 0, 0, 1);
+  ModelMatrix.scale(tracker.global_x_scale, tracker.global_y_scale, tracker.global_z_scale);
 
   for (var i = 0; i < cattail_count; i++) {
     drawCattail(g_cattails[i][0], g_cattails[i][1], g_cattails[i][2]);
@@ -168,7 +238,9 @@ function drawCattail(c_x, c_y, c_z) {
     ModelMatrix = popMatrix();
     pushMatrix(ModelMatrix);
     ModelMatrix.translate(0, 0.025, 0);
-    ModelMatrix.rotate(-g_angle, 0, 1, 0);
+    ModelMatrix.rotate(-tracker.global_x_rot, 1, 0, 0);
+    ModelMatrix.rotate(-tracker.global_y_rot, 0, 1, 0);
+    ModelMatrix.rotate(-tracker.global_z_rot, 0, 0, 1);
     ModelMatrix.scale(0.05, 0.05, 1);
     updateModelMatrix(ModelMatrix);
     gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2); // TODO Draw sphere
@@ -176,7 +248,9 @@ function drawCattail(c_x, c_y, c_z) {
     ModelMatrix = popMatrix();
     pushMatrix(ModelMatrix);
     ModelMatrix.translate(0, 0.3125, 0);
-    ModelMatrix.rotate(-g_angle, 0, 1, 0);
+    ModelMatrix.rotate(-tracker.global_x_rot, 1, 0, 0);
+    ModelMatrix.rotate(-tracker.global_y_rot, 0, 1, 0);
+    ModelMatrix.rotate(-tracker.global_z_rot, 0, 0, 1);
     ModelMatrix.scale(0.05, 0.05, 1);
     updateModelMatrix(ModelMatrix);
     gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2); // TODO Draw sphere
@@ -230,10 +304,104 @@ function sway(angle) {
   return newAngle;
 }
 
-function myMouseDown(ev) {}
+function myMouseDown(ev) {
+  if (!tracker.animate_toggle)
+    return;
+  var rect = ev.target.getBoundingClientRect();
+  var xp = ev.clientX - rect.left;
+  var yp = g_canvas.height - (ev.clientY - rect.top);
 
-function myMouseMove(ev) {}
+  var x = (xp - g_canvas.width/2)  / (g_canvas.width/2);
+	var y = (yp - g_canvas.height/2) / (g_canvas.height/2);
 
-function myMouseUp(ev) {}
+	g_isDrag = true;
+	g_xMclik = x;
+	g_yMclik = y;
+}
 
-function myKeyDown(kev) {}
+function myMouseMove(ev) {
+  if (!tracker.animate_toggle)
+    return;
+	if (g_isDrag==false)
+    return;
+
+  var rect = ev.target.getBoundingClientRect();
+  var xp = ev.clientX - rect.left;
+	var yp = g_canvas.height - (ev.clientY - rect.top);
+
+  var x = (xp - g_canvas.width/2)  / (g_canvas.width/2);
+	var y = (yp - g_canvas.height/2) / (g_canvas.height/2);
+
+	g_xMdragTot += (x - g_xMclik);
+	g_yMdragTot += (y - g_yMclik);
+
+	g_xMclik = x;
+	g_yMclik = y;
+
+  tracker.global_x_rot = (g_yMdragTot * 40) % 360;
+  tracker.global_y_rot = (g_xMdragTot * -40) % 360;
+}
+
+function myMouseUp(ev) {
+  if (!tracker.animate_toggle)
+    return;
+  var rect = ev.target.getBoundingClientRect();
+  var xp = ev.clientX - rect.left;
+	var yp = g_canvas.height - (ev.clientY - rect.top);
+
+  var x = (xp - g_canvas.width/2)  / (g_canvas.width/2);
+	var y = (yp - g_canvas.height/2) / (g_canvas.height/2);
+
+	g_isDrag = false;
+	g_xMdragTot += (x - g_xMclik);
+	g_yMdragTot += (y - g_yMclik);
+}
+
+function myKeyDown(kev) {
+  switch(kev.code) {
+		case "KeyP":
+			if (tracker.animate_toggle) {
+			  tracker.animate_toggle = false;
+		  }
+			else {
+			  tracker.animate_toggle = true;
+        g_last = g_cattail_last = Date.now();
+			  tick();
+		  }
+			break;
+		case "KeyW":
+    case "ArrowUp":
+      tracker.global_y_pos += 0.01;
+			break;
+		case "KeyA":
+    case "ArrowLeft":
+      tracker.global_x_pos -= 0.01;
+			break;
+		case "KeyS":
+    case "ArrowDown":
+      tracker.global_y_pos -= 0.01;
+			break;
+    case "KeyD":
+    case "ArrowRight":
+      tracker.global_x_pos += 0.01;
+			break;
+    case "KeyR":
+      tracker.reset();
+      break;
+    case "Equal":
+    case "NumpadAdd":
+      tracker.global_x_scale += .1;
+      tracker.global_y_scale += .1;
+      tracker.global_z_scale += .1;
+      break;
+    case "Minus":
+    case "NumpadSubtract":
+      tracker.global_x_scale -= .1;
+      tracker.global_y_scale -= .1;
+      tracker.global_z_scale -= .1;
+      break;
+    default:
+      console.log("Unused key");
+      break;
+	}
+}
