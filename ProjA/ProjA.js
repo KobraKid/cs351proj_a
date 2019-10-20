@@ -328,6 +328,14 @@ function sway(cattail) {
   g_cattails[cattail][3] = newAngle;
 }
 
+function randomize_sway() {
+  for (var i = 0; i < cattail_count; i++) {
+    // g_cattails[i][3] = Math.random() * g_cattail_max_sway;
+    g_cattails[i][4] = Date.now();
+    g_cattails[i][5] = Math.random() < 0.5 ? -1 : 1;
+  }
+}
+
 function toggle_help() {
   help_visible = !help_visible;
   document.getElementById("help-menu-expanded").style.visibility = help_visible ? "visible" : "hidden";
@@ -411,74 +419,84 @@ function myKeyDown(kev) {
       break;
 		case "KeyW":
     case "ArrowUp":
-      tracker.global_y_pos += 0.01;
+      tracker.global_y_pos -= 0.01;
 			break;
 		case "KeyA":
     case "ArrowLeft":
-      tracker.global_x_pos -= 0.01;
+      tracker.global_x_pos += 0.01;
 			break;
 		case "KeyS":
     case "ArrowDown":
-      tracker.global_y_pos -= 0.01;
+      tracker.global_y_pos += 0.01;
 			break;
     case "KeyD":
     case "ArrowRight":
-      tracker.global_x_pos += 0.01;
+      tracker.global_x_pos -= 0.01;
 			break;
     case "KeyR":
       tracker.reset();
       break;
     case "Equal":
     case "NumpadAdd":
-      tracker.global_x_scale += .1;
-      tracker.global_y_scale += .1;
-      tracker.global_z_scale += .1;
+      tracker.global_x_scale = Math.min(tracker.global_x_scale + .05, 2.5);
+      tracker.global_y_scale = Math.min(tracker.global_y_scale + .05, 2.5);
+      tracker.global_z_scale = Math.min(tracker.global_z_scale + .05, 2.5);
       break;
     case "Minus":
     case "NumpadSubtract":
-      tracker.global_x_scale -= .1;
-      tracker.global_y_scale -= .1;
-      tracker.global_z_scale -= .1;
+      tracker.global_x_scale = Math.max(tracker.global_x_scale - 0.05, 0.05);
+      tracker.global_y_scale = Math.max(tracker.global_y_scale - 0.05, 0.05);
+      tracker.global_z_scale = Math.max(tracker.global_z_scale - 0.05, 0.05);
       break;
     case "Digit1":
       g_cattail_max_sway = 2;
       g_cattail_rate = 0.8;
+      randomize_sway();
       break;
     case "Digit2":
       g_cattail_max_sway = 3;
       g_cattail_rate = 1.6;
+      randomize_sway();
       break;
     case "Digit3":
       g_cattail_max_sway = 4;
       g_cattail_rate = 2.4;
+      randomize_sway();
       break;
     case "Digit4":
       g_cattail_max_sway = 5;
       g_cattail_rate = 3.2;
+      randomize_sway();
       break;
     case "Digit5":
       g_cattail_max_sway = 6;
       g_cattail_rate = 4.0;
+      randomize_sway();
       break;
     case "Digit6":
       g_cattail_max_sway = 7;
       g_cattail_rate = 4.8;
+      randomize_sway();
       break;
     case "Digit7":
       g_cattail_max_sway = 8;
       g_cattail_rate = 5.6;
+      randomize_sway();
       break;
     case "Digit8":
       g_cattail_max_sway = 9;
       g_cattail_rate = 6.4;
+      randomize_sway();
       break;
     case "Digit9":
       g_cattail_max_sway = 10;
       g_cattail_rate = 7.2;
+      randomize_sway();
       break;
     case "Digit0":
       g_cattail_max_sway = 11;
       g_cattail_rate = 8.0;
+      randomize_sway();
       break;
     default:
       console.log("Unused key: " + kev.code);
