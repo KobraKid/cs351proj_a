@@ -40,10 +40,10 @@ function main() {
   initVBO();
 
   /* Init event listeners */
-	window.addEventListener("keydown", myKeyDown, false);
+  window.addEventListener("keydown", myKeyDown, false);
   window.addEventListener("mousedown", myMouseDown);
   window.addEventListener("mousemove", myMouseMove);
-	window.addEventListener("mouseup", myMouseUp);
+  window.addEventListener("mouseup", myMouseUp);
 
   /* Start main draw loop */
   tick();
@@ -52,12 +52,14 @@ function main() {
 function initVBO() {
 
   /*Order of push: 
-    1. Top right wing (front/z+): 1-47
-    2. Bottom right wing (front/z+): 48-94
-    3. Bottom right wing (back/z-): 95-141
-    4. Top right wing (back/z-): 142-188
-    5. Connector between top wing: 188-235
-    6. Connector between bottom wing: 236-282 */
+    1. Top right wing (front/z+): 0-46
+    2. Bottom right wing (front/z+): 47-93
+    3. Bottom right wing (back/z-): 94-140
+    4. Top right wing (back/z-): 141-187
+    5. Abdomen (circle of cylinder): 188-205
+    6. Abdomen (tube of cylinder): 206-239 
+    7. Abdomen (tip of cone): 240-240
+    8. Abdomen (circumference of cone): 241- 258 */
 
   //The top right wing
   var pos =  [-1.0, 0.0, 0.0, 1.0, // vertex 1
@@ -169,6 +171,35 @@ for (var i = 0; i < pos.length; i++) {
   colors.push((i%4==3)?1:Math.random());
 }
 
+/* ABDOMEN */
+//Circle: {start: 188, len: (g_step * 2) + 2}
+var g_step = 8;
+pos.push(0, 0, 0, 1);
+colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
+for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
+  pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
+  colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
+}
+
+// Brown Tube: {start: 206, len: (g_step * 4) + 2}
+  for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
+    pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
+    pos.push(Math.cos(theta), 1, Math.sin(theta), 1);
+    colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
+    colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
+  }
+
+// Cone Tip: {start: (g_step * 6) + 4, len: 1}
+pos.push(0, 1, 0, 1);
+colors.push(13.0/255.0, 173.0/255.0, 10.0/255.0, 1);
+
+// Cone Circumfrence: {start: (g_step * 6) + 5, len: (g_step * 2) + 2}
+for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
+  pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
+  colors.push(13.0/255.0, 173.0/255.0, 10.0/255.0, 1);
+}
+
+
 appendPositions(pos);
 appendColors(colors);
 
@@ -183,13 +214,42 @@ function draw() {
   ModelMatrix.scale(.5,.5,.5); 
   updateModelMatrix(ModelMatrix);
 
+  /*Draws Abdomen*/
+  //Cylinder
+  pushMatrix(ModelMatrix);
+  ModelMatrix.scale(0.15,1.1,0.15);
+  ModelMatrix.translate(0,-.05,0);
+  ModelMatrix.scale(1,.6,-1);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP,206, 34);
+  ModelMatrix = popMatrix();
+
+  //Cone (near head)
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(0,.6,0);
+  ModelMatrix.scale(0.15,.15,0.15);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN,240,19); //Cone (near head)
+  ModelMatrix = popMatrix();
+
+  //cone (near tail)
+  pushMatrix(ModelMatrix);
+  ModelMatrix.rotate(180,0,0,1);
+  ModelMatrix.scale(0.15,.3,0.15);
+  ModelMatrix.translate(0,.1,0);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN,240,19); //Cone (near tail)
+  ModelMatrix = popMatrix();
+
 
   //bottom left and bottom right wings
   pushMatrix(ModelMatrix);
   //draw the front and back of lower right wings
-  ModelMatrix.translate(1,0,0);
+  ModelMatrix.translate(1.1,0,0);
   updateModelMatrix(ModelMatrix);
   gl.drawArrays(gl.TRIANGLE_STRIP,47,47); 
+  ModelMatrix.translate(-.2,0,0);
+  updateModelMatrix(ModelMatrix);
   gl.drawArrays(gl.TRIANGLE_STRIP,94,47);
 
   //draw the front and back of lower left wing
