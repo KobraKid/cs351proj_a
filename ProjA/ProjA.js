@@ -293,8 +293,7 @@ function drawCattail(c_x, c_y, c_z, c_sway) {
       ModelMatrix = popMatrix();
     }
 
-    // TODO: Object: Leaf
-    // gl.drawArrays(...);
+    // TODO Object: Leaf? If we have time.
 
     // End Group: Stalk
     ModelMatrix = popMatrix();
@@ -340,7 +339,7 @@ function drawCattail(c_x, c_y, c_z, c_sway) {
     pushMatrix(ModelMatrix);
 
     // Object: Tip
-    ModelMatrix.translate(0, 0.33, 0);
+    ModelMatrix.translate(0, 0.36, 0); // can be moved back down to ~0.33 after spheres implemented
     ModelMatrix.rotate(270, 1, 0, 0);
     ModelMatrix.scale(0.01, 0.01, 0.25); // w, d, h
     updateModelMatrix(ModelMatrix);
