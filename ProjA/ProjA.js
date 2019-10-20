@@ -42,11 +42,13 @@ var tick = function() {
 };
 
 // Event handler vars
-var g_isDrag=false;
-var g_xMclik=0.0;
-var g_yMclik=0.0;
-var g_xMdragTot=0.0;
-var g_yMdragTot=0.0;
+var g_isDrag = false;
+var g_xMclik = 0.0;
+var g_yMclik = 0.0;
+var g_xMdragTot = 0.0;
+var g_yMdragTot = 0.0;
+var g_mouse_x = 1.0;
+var g_mouse_y = 0.5;
 
 // GUI vars
 var gui;
@@ -100,6 +102,16 @@ function main() {
   window.addEventListener("mousedown", myMouseDown);
   window.addEventListener("mousemove", myMouseMove);
 	window.addEventListener("mouseup", myMouseUp);
+  (function() {
+      document.onmousemove = handleMouseMove;
+      function handleMouseMove(event) {
+          var eventDoc, doc, body;
+          // IE compat
+          event=event||window.event;if(event.pageX==null&&event.clientX!=null){eventDoc=(event.target&&event.target.ownerDocument)||document;doc=eventDoc.documentElement;body=eventDoc.body;event.pageX=event.clientX+(doc&&doc.scrollLeft||body&&body.scrollLeft||0)-(doc&&doc.clientLeft||body&&body.clientLeft||0);event.pageY=event.clientY+(doc&&doc.scrollTop||body&&body.scrollTop||0)-(doc&&doc.clientTop||body&&body.clientTop||0);}
+          g_mouse_x = event.pageX / (window.innerWidth * g_aspect);
+          g_mouse_y = event.pageY / window.innerHeight;
+      }
+  })(); // mousemove
 
   /* Randomize forest */
   for (var i = 0; i < cattail_count; i++) {
@@ -117,6 +129,9 @@ function main() {
   tick();
 }
 
+/*
+ * Initializes the GUI at startup, registers variable state listeners.
+ */
 function initGui() {
   gui = new dat.GUI({name: 'My GUI'});
   var anim = gui.addFolder('Animations');
@@ -154,6 +169,12 @@ function initGui() {
   gui.close();
 }
 
+/*
+ * Fills VBO with all of the data we will need.
+ *
+ * This function runs once on startup, and loads all of the necessary vertices
+ * into the VBO, as well as all of their color information.
+ */
 function initVBO() {
   pos = [];
   colors = [];
@@ -197,6 +218,9 @@ function initVBO() {
   appendColors(colors);
 }
 
+/*
+ * Main draw handler, sets up global matrix and calls other draw functions.
+ */
 function draw() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -208,11 +232,42 @@ function draw() {
   ModelMatrix.rotate(tracker.global_z_rot, 0, 0, 1);
   ModelMatrix.scale(tracker.global_x_scale, tracker.global_y_scale, tracker.global_z_scale);
 
+  drawTest();
+
   for (var i = 0; i < cattail_count; i++) {
     drawCattail(g_cattails[i][0], g_cattails[i][1], g_cattails[i][2], g_cattails[i][3]);
   }
 }
 
+/*
+ * Proof-of-concept mouse-following object.
+ *
+ * Uses mouse move events to track the mouse and redraw an arbitrary shape
+ * at the mouse position.
+ */
+function drawTest() {
+  pushMatrix(ModelMatrix);
+  ModelMatrix.setTranslate(0, 0, 0);
+  ModelMatrix.setScale(g_aspect, 1, 1);
+  ModelMatrix.translate(tracker.global_x_pos, tracker.global_y_pos, tracker.global_z_pos);
+  ModelMatrix.translate((g_mouse_x * 2) - 2, (-g_mouse_y * 2) + 1, 0);
+  ModelMatrix.scale(0.3, 0.3, 0.3);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
+  ModelMatrix = popMatrix();
+}
+
+/*
+ * Draws a cattail at a given position.
+ *
+ * A cattail is located at an arbitrary point in space, and will sway depending
+ * on the wind speed.
+ *
+ * @param c_x    x position of cattail.
+ * @param c_y    y position of cattail.
+ * @param c_z    z position of cattail.
+ * @param c_sway current angle of sway.
+ */
 function drawCattail(c_x, c_y, c_z, c_sway) {
     /* Group: Cattail */
     pushMatrix(ModelMatrix);
@@ -292,7 +347,7 @@ function drawCattail(c_x, c_y, c_z, c_sway) {
     gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 4, (g_step * 2) + 2);
     ModelMatrix.rotate(180, 1, 0, 0);
     updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
+    gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 5, (g_step * 2) + 2);
 
     // End Group: Tip
     ModelMatrix = popMatrix();
@@ -357,6 +412,8 @@ function myMouseDown(ev) {
 	g_isDrag = true;
 	g_xMclik = x;
 	g_yMclik = y;
+  console.log(g_mouse_x);
+  console.log(g_mouse_y);
 }
 
 function myMouseMove(ev) {
