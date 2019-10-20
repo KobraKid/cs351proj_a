@@ -169,7 +169,7 @@ for (var c = pos_length-1; c >= 0; c -= 4) {
 
 var colors = [];
 for (var i = 0; i < pos.length; i++) {
-  colors.push((i%4==3)?1:Math.random());
+  colors.push((i%4==3)?.3:Math.random());
 }
 
 /* ABDOMEN */
@@ -233,12 +233,24 @@ function draw() {
 
   //Set's all elements to their initial position
   ModelMatrix.setTranslate(0,0,0);
-  ModelMatrix.setScale(g_aspect, 1, 1);
-  ModelMatrix.rotate(g_angle,1,1,0); //this is for viewing purposes. Delete later.
-  ModelMatrix.scale(.5,.5,.5);
+
+  ModelMatrix.setScale(g_aspect,1,1);
+
+  //ModelMatrix.rotate(g_angle,1,1,1); //this is for viewing purposes. Delete later.
+  ModelMatrix.scale(.5,.5,.5); 
   updateModelMatrix(ModelMatrix);
 
   /*Draws Abdomen*/
+  drawAbdomen();
+
+  /* Draws Wings*/
+  drawWings();
+
+  /* Draws Tail*/
+  drawTail();
+}
+
+function drawAbdomen() {
   //Cylinder
   pushMatrix(ModelMatrix);
   ModelMatrix.scale(0.15,1.1,0.15);
@@ -288,52 +300,103 @@ function draw() {
   updateModelMatrix(ModelMatrix);
   gl.drawArrays(gl.TRIANGLE_FAN,240,18); //Cone (near tail)
   ModelMatrix = popMatrix();
+}
 
-
+function drawWings() {
   //bottom left and bottom right wings
   pushMatrix(ModelMatrix);
-  //draw the front and back of lower right wings
-  ModelMatrix.translate(1.1,0,0);
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP,47,47);
-  ModelMatrix.translate(-.2,0,0);
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP,94,47);
 
-  //draw the front and back of lower left wing
-  ModelMatrix.translate(-2,0,0);
-  ModelMatrix.scale(-1,1,1);
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP,47,47);
-  gl.drawArrays(gl.TRIANGLE_STRIP,94,47);
+    //draw the front and back of lower right wings
+    //rotate the lower right wings
+    ModelMatrix.translate(-1.0,0,0);
+    ModelMatrix.rotate(g_angle,0,1,0);
+    ModelMatrix.translate(Math.cos(g_angle*Math.PI/180),0,Math.sin(g_angle*Math.PI/180));
+
+    ModelMatrix.translate(1.1,0,0);
+    updateModelMatrix(ModelMatrix);
+    gl.drawArrays(gl.TRIANGLE_STRIP,47,47);    
+    gl.drawArrays(gl.TRIANGLE_STRIP,94,47);
 
   ModelMatrix = popMatrix();
 
-  //top left adnd top right wings
+
+  
+  pushMatrix(ModelMatrix);
+  
+    //draw the front and back of lower left wing
+    //rotate the lower left wings 
+
+    ModelMatrix.translate(-1,0,0);
+    ModelMatrix.rotate(-g_angle,0,1,0);
+    ModelMatrix.translate(Math.cos(-g_angle*Math.PI/180),0,Math.sin(-g_angle*Math.PI/180));
+
+    ModelMatrix.translate(-1.1,0,0);
+    ModelMatrix.scale(-1,1,1);
+    updateModelMatrix(ModelMatrix);
+    gl.drawArrays(gl.TRIANGLE_STRIP,47,47); 
+    gl.drawArrays(gl.TRIANGLE_STRIP,94,47);
+
+  ModelMatrix = popMatrix();
+
+  //top left back and front wings
   pushMatrix(ModelMatrix);
 
-  //translates upper right wing and rotates so in correct position
-  ModelMatrix.translate(1,.55,0);
-  ModelMatrix.rotate(14,0,0,1);
-  updateModelMatrix(ModelMatrix);
+    //translates upper right wing and rotates so in correct position
 
-  //draw the front and back of upper right wing
-  gl.drawArrays(gl.TRIANGLE_STRIP,0,47);
-  gl.drawArrays(gl.TRIANGLE_STRIP,141,47)
+    ModelMatrix.translate(-1,0,0);
+    ModelMatrix.rotate(-g_angle,0,1,0);
+    ModelMatrix.translate(Math.cos(-g_angle*Math.PI/180),0,Math.sin(-g_angle*Math.PI/180));
 
+    ModelMatrix.translate(1,.55,0);
+    ModelMatrix.rotate(14,0,0,1);
 
-  //draw the front and back of upper left wing
-  ModelMatrix.rotate(-14,0,0,1);
-  ModelMatrix.translate(-2,0,0);
+    updateModelMatrix(ModelMatrix);
+
+    //draw the front and back of upper right wing
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,47); 
+    gl.drawArrays(gl.TRIANGLE_STRIP,141,47) 
+
+ModelMatrix = popMatrix();
+
+//top right back and front wings
+pushMatrix(ModelMatrix);
+  ModelMatrix.translate(-1,0,0);
+  ModelMatrix.rotate(g_angle,0,1,0);
+  ModelMatrix.translate(Math.cos(g_angle*Math.PI/180),0,Math.sin(g_angle*Math.PI/180));
+
+  ModelMatrix.translate(-1,.55,0);
   ModelMatrix.rotate(-14,0,0,1);
   ModelMatrix.scale(-1,1,1);
   updateModelMatrix(ModelMatrix);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,47);
   gl.drawArrays(gl.TRIANGLE_STRIP,141,47);
 
+ModelMatrix = popMatrix();
+
+}
+
+function drawTail(){
+  pushMatrix(ModelMatrix);
+  ModelMatrix.scale(0.05,.1,0.05);
+  ModelMatrix.translate(0,-3,0);
+  ModelMatrix.scale(1,1,-1);
+  updateModelMatrix(ModelMatrix);
+
+  //draw first cylinder of tail
+  gl.drawArrays(gl.TRIANGLE_STRIP,206, 34); 
+  
+  //draw the rest of the cylinders on the tail
+  for (var i = 0; i < 12; i++) {
+    ModelMatrix.translate(0,-1,0);
+    updateModelMatrix(ModelMatrix);
+    gl.drawArrays(gl.TRIANGLE_STRIP,206, 34);
+  }
+
+  //draw the cone on the tip of the tail
+  ModelMatrix.scale(1,-.4,1);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN,240,18); //Cone (near tail)
   ModelMatrix = popMatrix();
-
-
 }
 
 function animate(angle) {
