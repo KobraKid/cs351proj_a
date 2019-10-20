@@ -10,6 +10,28 @@
     <canvas id="webgl">
     This page requires a browser that supports the HTML5 canvas element.
     </canvas>
+    <div id="help-menu" onclick="toggle_help()">Show Help</div>
+    <div id="help-menu-expanded">
+      Menus
+      <ul>
+        <li>Press <code>/</code> to toggle this menu</li>
+        <li>Press <code>.</code> to toggle the GUI</li>
+        <li>Use the GUI to inspect changes or manually tweak them</li>
+      </ul>
+      Scene Navigation
+      <ul>
+        <li>Press <code>W</code><code>A</code><code>S</code><code>D</code><br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or <code>↑</code><code>↓</code><code>←</code><code>→</code> to pan view</li>
+        <li>Press <code>+</code> and <code>-</code> to zoom in / out</li>
+        <li>Click and drag with the <img src="88221.png" style="height: 16px; width: 16px"> mouse to rotate view</li>
+        <li>Press <code>P</code> to globally pause / unpause animation</li>
+        <li>Press <code>R</code> to reset all user related manipulations</li>
+      </ul>
+      Object Manipulation
+      <ul>
+        <li>Press <code>1</code><code>2</code> ... <code>9</code><code>0</code> to change wind strength on cattails</li>
+        <li>Move the <img src="88221.png" style="height: 16px; width: 16px"> mouse to have dragonflies follow the mouse cursor</li>
+      </ul>
+    </div>
     <!-- Scripts -->
     <script src="lib/webgl-utils.js"></script>
     <script src="lib/webgl-debug.js"></script>
