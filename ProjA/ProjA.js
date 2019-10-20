@@ -9,7 +9,12 @@
 
 /* Global Vars */
 var gl;
-var g_canvas;
+var g_canvas = document.getElementById('webgl');
+// Fix canvas size
+g_canvas.width = window.innerWidth;
+g_canvas.height = window.innerHeight;
+var g_aspect = window.innerHeight / window.innerWidth;
+var g_step = 8;
 var g_angle = 0;
 var g_angleRate = 45;
 var ModelMatrix;
@@ -27,10 +32,6 @@ var tick = function() {
  */
 function main() {
   /* Init vars */
-  // Fix canvas size
-  g_canvas = document.getElementById('webgl');
-  g_canvas.width = window.innerWidth;
-  g_canvas.height = window.innerHeight;
   gl = init();
   ModelMatrix = new Matrix4();
   updateModelMatrix(ModelMatrix);
@@ -51,13 +52,13 @@ function main() {
 
 function initVBO() {
 
-  /*Order of push: 
+  /*Order of push:
     1. Top right wing (front/z+): 0-46
     2. Bottom right wing (front/z+): 47-93
     3. Bottom right wing (back/z-): 94-140
     4. Top right wing (back/z-): 141-187
     5. Abdomen (circle of cylinder): 188-205
-    6. Abdomen (tube of cylinder): 206-239 
+    6. Abdomen (tube of cylinder): 206-239
     7. Abdomen (tip of cone): 240-240
     8. Abdomen (circumference of cone): 241- 258 */
 
@@ -83,7 +84,7 @@ function initVBO() {
               -0.30, 0.15, 0.0, 1.0, // vertex 19
               -0.20,-0.29, 0.0, 1.0, // vertex 20
               -0.20, 0.15, 0.0, 1.0, // vertex 21
-              -0.10,-0.30, 0.0, 1.0, // vertex 22 
+              -0.10,-0.30, 0.0, 1.0, // vertex 22
               -0.10, 0.16, 0.0, 1.0, // vertex 23
                0.00,-0.30, 0.0, 1.0, // vertex 24
                0.00, 0.17, 0.0, 1.0, // vertex 25
@@ -105,7 +106,7 @@ function initVBO() {
                0.75, 0.20, 0.0, 1.0, // vertex 41
                0.80,-0.03, 0.0, 1.0, // vertex 42
                0.80, 0.17, 0.0, 1.0, // vertex 43
-               0.85, 0.00, 0.0, 1.0, // vertex 44 
+               0.85, 0.00, 0.0, 1.0, // vertex 44
                0.85, 0.12, 0.0, 1.0, // vertex 45
                0.86, 0.02, 0.0, 1.0, // vertex 46
                0.86, 0.06, 0.0, 1.0]; // vertex 47
@@ -132,7 +133,7 @@ function initVBO() {
             -0.30, 0.15, 0.0, 1.0, // vertex 19
             -0.20,-0.34, 0.0, 1.0, // vertex 20
             -0.20, 0.15, 0.0, 1.0, // vertex 21
-            -0.10,-0.34, 0.0, 1.0, // vertex 22 
+            -0.10,-0.34, 0.0, 1.0, // vertex 22
             -0.10, 0.16, 0.0, 1.0, // vertex 23
              0.00,-0.34, 0.0, 1.0, // vertex 24
              0.00, 0.17, 0.0, 1.0, // vertex 25
@@ -154,7 +155,7 @@ function initVBO() {
              0.75, 0.20, 0.0, 1.0, // vertex 41
              0.80,-0.11, 0.0, 1.0, // vertex 42
              0.80, 0.17, 0.0, 1.0, // vertex 43
-             0.85,-0.08, 0.0, 1.0, // vertex 44 
+             0.85,-0.08, 0.0, 1.0, // vertex 44
              0.85, 0.12, 0.0, 1.0, // vertex 45
              0.86, 0.02, 0.0, 1.0, // vertex 46
              0.86, 0.06, 0.0, 1.0); // vertex 47
@@ -164,7 +165,7 @@ var pos_length = pos.length;
 
 for (var c = pos_length-1; c >= 0; c -= 4) {
   pos.push(pos[c-3],pos[c-2],pos[c-1],pos[c]);
-} 
+}
 
 var colors = [];
 for (var i = 0; i < pos.length; i++) {
@@ -199,19 +200,42 @@ for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.
   colors.push(13.0/255.0, 173.0/255.0, 10.0/255.0, 1);
 }
 
+// Head cube: {start: (g_step * 8) + 7, len: 9}
+pos.push(0, 1, 1, 1);
+pos.push(0, 0, 1, 1);
+pos.push(1, 1, 1, 1);
+pos.push(1, 0, 1, 1);
+pos.push(1, 1, 0, 1);
+pos.push(1, 0, 0, 1);
+pos.push(0, 1, 0, 1);
+pos.push(0, 0, 0, 1);
+pos.push(0, 1, 1, 1);
+pos.push(0, 0, 1, 1);
+pos.push(0, 1, 1, 1);
+pos.push(1, 1, 1, 1);
+pos.push(0, 1, 0, 1);
+pos.push(1, 1, 0, 1);
+pos.push(1, 0, 0, 1);
+pos.push(1, 0, 1, 1);
+pos.push(0, 0, 0, 1);
+pos.push(0, 0, 1, 1);
+for (var i = 0; i < 18; i++) {
+  colors.push(Math.random(), Math.random(), Math.random(), 1);
+}
 
 appendPositions(pos);
 appendColors(colors);
 
 }
 
-function draw() {  
+function draw() {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   //Set's all elements to their initial position
   ModelMatrix.setTranslate(0,0,0);
-  ModelMatrix.rotate(g_angle,1,1,1); //this is for viewing purposes. Delete later.
-  ModelMatrix.scale(.5,.5,.5); 
+  ModelMatrix.setScale(g_aspect, 1, 1);
+  ModelMatrix.rotate(g_angle,1,1,0); //this is for viewing purposes. Delete later.
+  ModelMatrix.scale(.5,.5,.5);
   updateModelMatrix(ModelMatrix);
 
   /*Draws Abdomen*/
@@ -229,7 +253,31 @@ function draw() {
   ModelMatrix.translate(0,.6,0);
   ModelMatrix.scale(0.15,.15,0.15);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_FAN,240,19); //Cone (near head)
+  gl.drawArrays(gl.TRIANGLE_FAN,240,18); //Cone (near head)
+  ModelMatrix = popMatrix();
+
+  // Head
+  pushMatrix(ModelMatrix);
+  ModelMatrix.scale(.15, .2, -.15);
+  ModelMatrix.translate(-.5, 3.5, -.5);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 258, 18);
+  ModelMatrix = popMatrix();
+  pushMatrix(ModelMatrix);
+  ModelMatrix.rotate(270, 1, 0, 0);
+  ModelMatrix.translate(0.064, 0.05, 0.8);
+  ModelMatrix.rotate(-g_angle, 1, 0, 1);
+  ModelMatrix.scale(0.08, 1, 0.08);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN, 188, 18);
+  ModelMatrix = popMatrix();
+  pushMatrix(ModelMatrix);
+  ModelMatrix.rotate(270, 1, 0, 0);
+  ModelMatrix.translate(-0.064, 0.05, 0.8);
+  ModelMatrix.rotate(-g_angle, 1, 0, 1);
+  ModelMatrix.scale(0.08, 1, 0.08);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN, 188, 18);
   ModelMatrix = popMatrix();
 
   //cone (near tail)
@@ -238,7 +286,7 @@ function draw() {
   ModelMatrix.scale(0.15,.3,0.15);
   ModelMatrix.translate(0,.1,0);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_FAN,240,19); //Cone (near tail)
+  gl.drawArrays(gl.TRIANGLE_FAN,240,18); //Cone (near tail)
   ModelMatrix = popMatrix();
 
 
@@ -247,7 +295,7 @@ function draw() {
   //draw the front and back of lower right wings
   ModelMatrix.translate(1.1,0,0);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP,47,47); 
+  gl.drawArrays(gl.TRIANGLE_STRIP,47,47);
   ModelMatrix.translate(-.2,0,0);
   updateModelMatrix(ModelMatrix);
   gl.drawArrays(gl.TRIANGLE_STRIP,94,47);
@@ -256,7 +304,7 @@ function draw() {
   ModelMatrix.translate(-2,0,0);
   ModelMatrix.scale(-1,1,1);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP,47,47); 
+  gl.drawArrays(gl.TRIANGLE_STRIP,47,47);
   gl.drawArrays(gl.TRIANGLE_STRIP,94,47);
 
   ModelMatrix = popMatrix();
@@ -270,8 +318,8 @@ function draw() {
   updateModelMatrix(ModelMatrix);
 
   //draw the front and back of upper right wing
-  gl.drawArrays(gl.TRIANGLE_STRIP,0,47); 
-  gl.drawArrays(gl.TRIANGLE_STRIP,141,47) 
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,47);
+  gl.drawArrays(gl.TRIANGLE_STRIP,141,47)
 
 
   //draw the front and back of upper left wing
@@ -280,8 +328,8 @@ function draw() {
   ModelMatrix.rotate(-14,0,0,1);
   ModelMatrix.scale(-1,1,1);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP,0,47); 
-  gl.drawArrays(gl.TRIANGLE_STRIP,141,47); 
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,47);
+  gl.drawArrays(gl.TRIANGLE_STRIP,141,47);
 
   ModelMatrix = popMatrix();
 
