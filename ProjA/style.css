@@ -1,7 +1,60 @@
 /* Main stylesheet for the Project. */
 
 html, body {
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden;
+  background-color: black;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+code {
+  color: white;
+  border-radius: 4px;
+  background: gray;
+  padding: 1px 4px;
+  margin-left: 1px;
+  margin-right: 1px;
+}
+
+#help-menu, #help-menu-expanded {
+  background-color: #000;
+  color: #eee;
+  cursor: pointer;
+  float: left;
+  font: 11px 'Lucida Grande', sans-serif;
+  left: 0;
+  line-height: 19px;
+  height: 20px;
+  margin-left: 15px;
+  position: absolute;
+  text-align: center;
+  text-shadow: 0 -1px 0 #111;
+  top: 0;
+  width: 245px;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+#help-menu-expanded {
+  cursor: default;
+  height: auto;
+  line-height: 16px;
+  padding: 15px;
+  text-align: left;
+  top: 20px;
+  visibility: hidden;
+  width: 215px
+}
+
+#help-menu-expanded img {
+  filter: invert() contrast(75%) saturate(8);
+}
+
+#help-menu-expanded ul {
+  padding-left: 20px;
 }
