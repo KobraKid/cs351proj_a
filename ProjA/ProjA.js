@@ -58,6 +58,9 @@ var g_xMdragTot = 0.0;
 var g_yMdragTot = 0.0;
 var g_mouse_x = 1.0;
 var g_mouse_y = 0.5;
+var g_dragonfly_x = 0;
+var g_dragonfly_y = 0;
+var g_dragonfly_z = 0;
 
 // GUI vars
 var gui;
@@ -429,11 +432,15 @@ function draw() {
  * at the mouse position.
  */
 function drawTest() {
+  g_dragonfly_x = ((g_dragonfly_x*15 + (g_mouse_x * 2) - 2) / 16);
+  g_dragonfly_y = ((g_dragonfly_y*15 + (-g_mouse_y * 2) + 1) / 16);
   pushMatrix(ModelMatrix);
   ModelMatrix.setTranslate(0, 0, 0);
   ModelMatrix.setScale(g_aspect, 1, 1);
-  ModelMatrix.translate(tracker.global_x_pos, tracker.global_y_pos, tracker.global_z_pos);
-  ModelMatrix.translate((g_mouse_x * 2) - 2, (-g_mouse_y * 2) + 1, 0);
+  ModelMatrix.translate(g_dragonfly_x, g_dragonfly_y, g_dragonfly_z);
+  ModelMatrix.rotate(tracker.global_x_rot, 1, 0, 0);
+  ModelMatrix.rotate(tracker.global_y_rot, 0, 1, 0);
+  ModelMatrix.rotate(tracker.global_z_rot, 0, 0, 1);
   ModelMatrix.scale(0.3, 0.3, 0.3);
   updateModelMatrix(ModelMatrix);
   gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
