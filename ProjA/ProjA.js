@@ -101,6 +101,8 @@ function main() {
   ModelMatrix = new Matrix4();
   updateModelMatrix(ModelMatrix);
   gl.clearColor(0.5, 0.7, 1, 1.0);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
   /* Init Functions */
   initGui();
@@ -335,35 +337,55 @@ function initVBO() {
    var pos_length = pos.length;
    for (var c = pos_length - 1; c >= wing_start * 4; c -= 4) {
      pos.push(pos[c - 3], pos[c - 2], pos[c - 1], pos[c]);
-     colors.push(Math.random(), Math.random(), Math.random(), 0.3, Math.random(), Math.random(), Math.random(), 0.3);
    }
+
+   var pos_length2 = pos.length;
+   for (var c = pos_length - 1; c >= wing_start*4; c -= 32) {
+    colors.push(.05, .10, .55, 1);
+    colors.push(0.5, 0.7, 1, 0);   
+    colors.push(0.5, 0.7, 1, 0);    
+    colors.push(.05, .10, .55, 1);
+    colors.push(.05, .10, .55, 1);
+    colors.push(0.5, 0.7, 1, 0);  
+    colors.push(0.5, 0.7, 1, 0);  
+    colors.push(.05, .10, .55, 1);
+    colors.push(.05, .10, .55, 1);
+    colors.push(.05, .10, .55, 1);
+    colors.push(0.5, 0.7, 1, 0)    
+    colors.push(0.5, 0.7, 1, 0)
+    colors.push(.05, .10, .55, 1);
+    colors.push(0.5, 0.7, 1, 0)
+    colors.push(0.5, 0.7, 1, 0) 
+    colors.push(.05, .10, .55, 1);
+   
+  }
 
    /* ABDOMEN */
 
    // Circle: {start: 188, len: (g_step * 2) + 2}
    pos.push(0, 0, 0, 1);
-   colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
+   colors.push(.03, .13, .29, 1);
    for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
      pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
-     colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
+     colors.push(.03, .25, .68, 1);
    }
 
   // Brown Tube: {start: 206, len: (g_step * 4) + 2}
    for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
      pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
      pos.push(Math.cos(theta), 1, Math.sin(theta), 1);
-     colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
-     colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
+     colors.push(.03, .13, .29, 1);
+     colors.push(.03, .13, .29, 1);
    }
 
    // Cone Tip: {start: (g_step * 6) + 4, len: 1}
    pos.push(0, 1, 0, 1);
-   colors.push(13.0/255.0, 173.0/255.0, 10.0/255.0, 1);
+   colors.push(.03, .13, .29, 1);
 
    // Cone Circumfrence: {start: (g_step * 6) + 5, len: (g_step * 2) + 2}
    for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
      pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
-     colors.push(13.0/255.0, 173.0/255.0, 10.0/255.0, 1);
+     colors.push(.03, .13, .29, 1);
    }
 
    // Head cube: {start: (g_step * 8) + 7, len: 9}
@@ -386,7 +408,7 @@ function initVBO() {
              0, 0, 0, 1,
              0, 0, 1, 1);
   for (var i = 0; i < 18; i++) {
-    colors.push(Math.random(), Math.random(), Math.random(), 1);
+     colors.push(.03, .13, .29, 1);
   }
 
   var sphereVerts = makeSphere2(12, 21);
@@ -590,7 +612,7 @@ function drawAbdomen() {
   pushMatrix(ModelMatrix);
   ModelMatrix.rotate(270, 1, 0, 0);
   ModelMatrix.translate(0.064, 0.05, 0.8);
-  ModelMatrix.scale(0.08, 0.08, 0.08);
+  ModelMatrix.scale(-0.08, 0.08, 0.08);
   updateModelMatrix(ModelMatrix);
   gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
   ModelMatrix = popMatrix();
@@ -599,7 +621,7 @@ function drawAbdomen() {
   pushMatrix(ModelMatrix);
   ModelMatrix.rotate(270, 1, 0, 0);
   ModelMatrix.translate(-0.064, 0.05, 0.8);
-  ModelMatrix.scale(0.08, 0.08, 0.08);
+  ModelMatrix.scale(-0.08, 0.08, 0.08);
   updateModelMatrix(ModelMatrix);
   gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
   ModelMatrix = popMatrix();
