@@ -1,26 +1,26 @@
-/*  
-The 'lib1.js' library helps us temporarily set aside the unfamiliar 
+/*
+The 'lib1.js' library helps us temporarily set aside the unfamiliar
 intricacies of WebGL while we explore basic concepts of geometric drawing
-using vertices.  
+using vertices.
 
-To use this 'lib1.js' library, 
+To use this 'lib1.js' library,
   --Say 'thank you!" to NU undergrad student Vincent Bommier,
     (who wrote it over summer 2018 as a CS399 project). Keep this comment!
   --read what you find below -- you'll figure it out!
-  
+
 CHALLENGE:  can you re-write 'lib1.js' to use glMatrix.js and not cuon-matrix?
 */
 
 var VSHADER_SOURCE =
   'attribute vec4 a_Position;\n' +
   'attribute vec4 a_Color;\n' +
-  'attribute float a_PointSize;\n' +
+  // 'attribute float a_PointSize;\n' +
   'uniform mat4 u_ModelMatrix;\n' +
   'varying vec4 v_Color;\n' +
   'void main() {\n' +
   '  gl_Position = u_ModelMatrix * a_Position;\n' +
   '  v_Color = a_Color;\n' +
-  '  gl_PointSize = a_PointSize;\n' +
+  // '  gl_PointSize = a_PointSize;\n' +
   '}\n';
 
 // Fragment shader program
@@ -97,14 +97,14 @@ function bufferSetup(gl) {
   // Write date into the buffer object
   var VBO = CreateVBO();
   gl.bufferData(gl.ARRAY_BUFFER, VBO, gl.STATIC_DRAW);
-  
+
   // Assign the buffer object to a_Position variable
   var a_Position = gl.getAttribLocation(gl.program, 'a_Position');
   if(a_Position < 0) {
     console.log('Failed to get the storage location of a_Position');
     return -1;
   }
-    
+
   // Assign the buffer object to a_Color variable
   var a_Color = gl.getAttribLocation(gl.program, 'a_Color');
   if(a_Color < 0) {
@@ -113,11 +113,11 @@ function bufferSetup(gl) {
   }
 
   // Assign the buffer object to a_PointSize variable
-  var a_PointSize = gl.getAttribLocation(gl.program, 'a_PointSize');
-  if(a_PointSize < 0) {
-    console.log('Failed to get the storage location of a_PointSize');
-    return -1;
-  }
+  // var a_PointSize = gl.getAttribLocation(gl.program, 'a_PointSize');
+  // if(a_PointSize < 0) {
+  //   console.log('Failed to get the storage location of a_PointSize');
+  //   return -1;
+  // }
 
   //The VBO is setup so that it looks like:
   //[x1,y1,z1,w1,...,x1024,y1024,z1024,w1024,
@@ -125,7 +125,7 @@ function bufferSetup(gl) {
   // sz1,sz2,...,sz1024]
   var offset = 0;
 
-  gl.vertexAttribPointer(a_Position, positionDimensions, gl.FLOAT, false, FSIZE*positionDimensions, offset);//Specify the stride & offset 
+  gl.vertexAttribPointer(a_Position, positionDimensions, gl.FLOAT, false, FSIZE*positionDimensions, offset);//Specify the stride & offset
   gl.enableVertexAttribArray(a_Position); // Enable the assignment of the buffer object
   offset += FSIZE*numVertices*positionDimensions; //increase the offset so that it starts at the end of the position array
 
@@ -133,8 +133,8 @@ function bufferSetup(gl) {
   gl.enableVertexAttribArray(a_Color);  // Enable the assignment of the buffer object
   offset += FSIZE*numVertices*colorDimensions;
 
-  gl.vertexAttribPointer(a_PointSize, pointSizeDimensions, gl.FLOAT, false, FSIZE*pointSizeDimensions,offset);
-  gl.enableVertexAttribArray(a_PointSize);  // Enable the assignment of the buffer object
+  // gl.vertexAttribPointer(a_PointSize, pointSizeDimensions, gl.FLOAT, false, FSIZE*pointSizeDimensions,offset);
+  // gl.enableVertexAttribArray(a_PointSize);  // Enable the assignment of the buffer object
 }
 
 function appendPositions(arr){
@@ -164,7 +164,7 @@ function appendPointSizes(arr){
     console.log('Warning! Appending more than ' + numVertices + ' point-sizes to the VBO will overwrite existing data');
     console.log('Hint: look at changing numVertices in lib.js');
   }
-  bufferSetup(gl);  
+  bufferSetup(gl);
 }
 
 //concatenate two Float32Arrays
