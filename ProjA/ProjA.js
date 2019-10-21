@@ -385,9 +385,15 @@ function initVBO() {
              1, 0, 1, 1,
              0, 0, 0, 1,
              0, 0, 1, 1);
-   for (var i = 0; i < 18; i++) {
-     colors.push(Math.random(), Math.random(), Math.random(), 1);
-   }
+  for (var i = 0; i < 18; i++) {
+    colors.push(Math.random(), Math.random(), Math.random(), 1);
+  }
+
+  var sphereVerts = makeSphere2(12, 21);
+  for (var i = 0; i < sphereVerts.length; i += 7) {
+    pos.push(sphereVerts[i], sphereVerts[i+1], sphereVerts[i+2], sphereVerts[i+3]);
+    colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
+  }
 
   appendPositions(pos);
   appendColors(colors);
@@ -406,6 +412,8 @@ function draw() {
   ModelMatrix.rotate(tracker.global_y_rot, 0, 1, 0);
   ModelMatrix.rotate(tracker.global_z_rot, 0, 0, 1);
   ModelMatrix.scale(tracker.global_x_scale, tracker.global_y_scale, tracker.global_z_scale);
+
+  // drawTest();
 
   drawDragonfly();
 
@@ -428,7 +436,7 @@ function drawTest() {
   ModelMatrix.translate((g_mouse_x * 2) - 2, (-g_mouse_y * 2) + 1, 0);
   ModelMatrix.scale(0.3, 0.3, 0.3);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
   ModelMatrix = popMatrix();
 }
 
@@ -490,22 +498,16 @@ function drawCattail(c_x, c_y, c_z, c_sway) {
     ModelMatrix = popMatrix();
     pushMatrix(ModelMatrix);
     ModelMatrix.translate(0, 0.025, 0);
-    ModelMatrix.rotate(-tracker.global_x_rot, 1, 0, 0);
-    ModelMatrix.rotate(-tracker.global_y_rot, 0, 1, 0);
-    ModelMatrix.rotate(-tracker.global_z_rot, 0, 0, 1);
-    ModelMatrix.scale(0.05, 0.05, 1);
+    ModelMatrix.scale(0.05, 0.05, 0.05);
     updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2); // TODO Draw sphere
+    gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
 
     ModelMatrix = popMatrix();
     pushMatrix(ModelMatrix);
     ModelMatrix.translate(0, 0.3125, 0);
-    ModelMatrix.rotate(-tracker.global_x_rot, 1, 0, 0);
-    ModelMatrix.rotate(-tracker.global_y_rot, 0, 1, 0);
-    ModelMatrix.rotate(-tracker.global_z_rot, 0, 0, 1);
-    ModelMatrix.scale(0.05, 0.05, 1);
+    ModelMatrix.scale(0.05, 0.05, 0.05);
     updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2); // TODO Draw sphere
+    gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
 
     // End Group: Head
     ModelMatrix = popMatrix();
@@ -514,7 +516,7 @@ function drawCattail(c_x, c_y, c_z, c_sway) {
     pushMatrix(ModelMatrix);
 
     // Object: Tip
-    ModelMatrix.translate(0, 0.36, 0); // can be moved back down to ~0.33 after spheres implemented
+    ModelMatrix.translate(0, 0.36, 0);
     ModelMatrix.rotate(270, 1, 0, 0);
     ModelMatrix.scale(0.01, 0.01, 0.25); // w, d, h
     updateModelMatrix(ModelMatrix);
@@ -579,20 +581,18 @@ function drawAbdomen() {
   pushMatrix(ModelMatrix);
   ModelMatrix.rotate(270, 1, 0, 0);
   ModelMatrix.translate(0.064, 0.05, 0.8);
-  ModelMatrix.rotate(-g_angle, 1, 0, 1);
-  ModelMatrix.scale(0.08, 1, 0.08);
+  ModelMatrix.scale(0.08, 0.08, 0.08);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_FAN, wing_start+188, 18);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
   ModelMatrix = popMatrix();
 
   // Object: Right eye
   pushMatrix(ModelMatrix);
   ModelMatrix.rotate(270, 1, 0, 0);
   ModelMatrix.translate(-0.064, 0.05, 0.8);
-  ModelMatrix.rotate(-g_angle, 1, 0, 1);
-  ModelMatrix.scale(0.08, 1, 0.08);
+  ModelMatrix.scale(0.08, 0.08, 0.08);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_FAN, wing_start+188, 18);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
   ModelMatrix = popMatrix();
 
   // End Group: Head
@@ -763,8 +763,6 @@ function myMouseDown(ev) {
 	g_isDrag = true;
 	g_xMclik = x;
 	g_yMclik = y;
-  console.log(g_mouse_x);
-  console.log(g_mouse_y);
 }
 
 function myMouseMove(ev) {
