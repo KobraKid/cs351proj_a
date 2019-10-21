@@ -456,80 +456,89 @@ function drawCattail(c_x, c_y, c_z, c_sway) {
     pushMatrix(ModelMatrix);
     ModelMatrix.translate(c_x, c_y, c_z);
 
-    // Group: Stalk
-    pushMatrix(ModelMatrix);
-
-    // Object: Stem
-    var stalk_divisions = 12.0;
-    var stalk_height = 1.0;
-    ModelMatrix.translate(0, -1, 0);
-
-    for (var i = 0; i < stalk_divisions; i++) {
-      pushMatrix(ModelMatrix);
-      ModelMatrix.rotate(270, 1, 0, 0);
-      ModelMatrix.rotate(c_sway / stalk_divisions * i, 0, 1, 0);
-      ModelMatrix.translate(0, 0, 0.99/stalk_divisions * i);
-      ModelMatrix.rotate(c_sway / stalk_divisions * i, 0, 1, 0);
-      ModelMatrix.scale(0.02, 0.02, stalk_height/stalk_divisions);
-      updateModelMatrix(ModelMatrix);
-      gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 8) + 6, (g_step * 4) + 2);
-      ModelMatrix = popMatrix();
-    }
-
-    // TODO Object: Leaf? If we have time.
-
-    // End Group: Stalk
-    ModelMatrix = popMatrix();
-
-    // Group: Head
-    ModelMatrix.translate(0, -1, 0);
-    ModelMatrix.rotate(-c_sway, 0, 0, 1);
-    ModelMatrix.translate(0, 1, 0);
-    ModelMatrix.rotate(-c_sway, 0, 0, 1);
-    pushMatrix(ModelMatrix);
-
-    // Object: Head
-    ModelMatrix.rotate(270, 1, 0, 0);
-    ModelMatrix.scale(0.05, 0.05, 0.3);
-    ModelMatrix.translate(0, 0, 0.05);
-    updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 2) + 2, (g_step * 4) + 2);
-
-    ModelMatrix = popMatrix();
-    pushMatrix(ModelMatrix);
-    ModelMatrix.translate(0, 0.025, 0);
-    ModelMatrix.scale(0.05, 0.05, 0.05);
-    updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
-
-    ModelMatrix = popMatrix();
-    pushMatrix(ModelMatrix);
-    ModelMatrix.translate(0, 0.3125, 0);
-    ModelMatrix.scale(0.05, 0.05, 0.05);
-    updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
-
-    // End Group: Head
-    ModelMatrix = popMatrix();
-
-    // Group: Tip
-    pushMatrix(ModelMatrix);
-
-    // Object: Tip
-    ModelMatrix.translate(0, 0.36, 0);
-    ModelMatrix.rotate(270, 1, 0, 0);
-    ModelMatrix.scale(0.01, 0.01, 0.25); // w, d, h
-    updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 4, (g_step * 2) + 2);
-    ModelMatrix.rotate(180, 1, 0, 0);
-    updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 5, (g_step * 2) + 2);
-
-    // End Group: Tip
-    ModelMatrix = popMatrix();
+    drawCattailHead(c_sway);
+    drawStalk(c_sway);
 
     /* End Group: Cattail */
     ModelMatrix = popMatrix();
+}
+
+function drawCattailHead(c_sway) {
+  // Group: Head
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(0, -1, 0);
+  ModelMatrix.rotate(-c_sway, 0, 0, 1);
+  ModelMatrix.translate(0, 1.01, 0);
+  ModelMatrix.rotate(-c_sway, 0, 0, 1);
+
+  // Group: Tip
+  pushMatrix(ModelMatrix);
+
+  // Object: Tip
+  ModelMatrix.translate(0, 0.36, 0);
+  ModelMatrix.rotate(270, 1, 0, 0);
+  ModelMatrix.scale(0.01, 0.01, 0.25); // w, d, h
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 4, (g_step * 2) + 2);
+  ModelMatrix.rotate(180, 1, 0, 0);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 5, (g_step * 2) + 2);
+
+  // End Group: Tip
+  ModelMatrix = popMatrix();
+
+  // Object: Head
+  pushMatrix(ModelMatrix);
+  ModelMatrix.rotate(270, 1, 0, 0);
+  ModelMatrix.scale(0.05, 0.05, 0.3);
+  ModelMatrix.translate(0, 0, 0.05);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 2) + 2, (g_step * 4) + 2);
+  ModelMatrix = popMatrix();
+
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(0, 0.025, 0);
+  ModelMatrix.scale(0.05, 0.05, 0.05);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
+  ModelMatrix = popMatrix();
+
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(0, 0.3125, 0);
+  ModelMatrix.scale(0.05, 0.05, 0.05);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
+  ModelMatrix = popMatrix();
+
+  // End Group: Head
+  ModelMatrix = popMatrix();
+}
+
+function drawStalk(c_sway) {
+  // Group: Stalk
+  pushMatrix(ModelMatrix);
+
+  // Object: Stem
+  var stalk_divisions = 12.0;
+  var stalk_height = 1.0;
+  ModelMatrix.translate(0, -1, 0);
+
+  for (var i = 0; i < stalk_divisions; i++) {
+    pushMatrix(ModelMatrix);
+    ModelMatrix.rotate(270, 1, 0, 0);
+    ModelMatrix.rotate(c_sway / stalk_divisions * i, 0, 1, 0);
+    ModelMatrix.translate(0, 0, 0.99/stalk_divisions * i);
+    ModelMatrix.rotate(c_sway / stalk_divisions * i, 0, 1, 0);
+    ModelMatrix.scale(0.02, 0.02, stalk_height/stalk_divisions);
+    updateModelMatrix(ModelMatrix);
+    gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 8) + 6, (g_step * 4) + 2);
+    ModelMatrix = popMatrix();
+  }
+
+  // TODO Object: Leaf? If we have time.
+
+  // End Group: Stalk
+  ModelMatrix = popMatrix();
 }
 
 function drawDragonfly() {
