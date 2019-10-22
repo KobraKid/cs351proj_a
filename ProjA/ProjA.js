@@ -33,7 +33,7 @@ var g_cattail_rate = 4.8;
 // Wings
 var g_wing_angle = 0;
 var g_wing_angle_last = Date.now();
-var g_wing_angle_rate = 45;
+var g_wing_angle_rate = 450;
 var g_wing_dir = 1;
 // Tick function
 var tick = function() {
@@ -213,7 +213,7 @@ function initVBO() {
   /* CONE */
   // Tip: {start: (g_step * 6) + 4, len: 1}
   pos.push(0, 0, 1, 1);
-  colors.push(13.0/255.0, 173.0/255.0, 10.0/255.0, 1);
+  colors.push(19.0/255.0, 120.0/255.0, 46.0/255.0, 1);
   // Circumfrence: {start: (g_step * 6) + 5, len: (g_step * 2) + 2}
   for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
     pos.push(Math.cos(theta), Math.sin(theta), 0, 1);
@@ -225,7 +225,7 @@ function initVBO() {
     pos.push(Math.cos(theta), Math.sin(theta), 0, 1);
     pos.push(Math.cos(theta), Math.sin(theta), 1, 1);
     colors.push(13.0/255.0, 173.0/255.0, 10.0/255.0, 1);
-    colors.push(13.0/255.0, 173.0/255.0, 10.0/255.0, 1);
+    colors.push(16.0/255.0, 163.0/255.0, 55.0/255.0, 1);
   }
 
   /* Order of push:
@@ -345,22 +345,22 @@ function initVBO() {
    var pos_length2 = pos.length;
    for (var c = pos_length - 1; c >= wing_start*4; c -= 32) {
     colors.push(.05, .10, .55, 1);
-    colors.push(0.5, 0.7, 1, 0);   
-    colors.push(0.5, 0.7, 1, 0);    
+    colors.push(0.5, 0.7, 1, 0);
+    colors.push(0.5, 0.7, 1, 0);
     colors.push(.05, .10, .55, 1);
     colors.push(.05, .10, .55, 1);
-    colors.push(0.5, 0.7, 1, 0);  
-    colors.push(0.5, 0.7, 1, 0);  
+    colors.push(0.5, 0.7, 1, 0);
+    colors.push(0.5, 0.7, 1, 0);
     colors.push(.05, .10, .55, 1);
     colors.push(.05, .10, .55, 1);
     colors.push(.05, .10, .55, 1);
-    colors.push(0.5, 0.7, 1, 0)    
+    colors.push(0.5, 0.7, 1, 0)
     colors.push(0.5, 0.7, 1, 0)
     colors.push(.05, .10, .55, 1);
     colors.push(0.5, 0.7, 1, 0)
-    colors.push(0.5, 0.7, 1, 0) 
+    colors.push(0.5, 0.7, 1, 0)
     colors.push(.05, .10, .55, 1);
-   
+
   }
 
    /* ABDOMEN */
@@ -438,8 +438,6 @@ function draw() {
   ModelMatrix.rotate(tracker.global_z_rot, 0, 0, 1);
   ModelMatrix.scale(tracker.global_x_scale, tracker.global_y_scale, tracker.global_z_scale);
 
-  // drawTest();
-
   drawDragonfly();
 
   for (var i = 0; i < cattail_count; i++) {
@@ -454,8 +452,6 @@ function draw() {
  * at the mouse position.
  */
 function drawTest() {
-  g_dragonfly_x = ((g_dragonfly_x*15 + (g_mouse_x * 2) - 2) / 16);
-  g_dragonfly_y = ((g_dragonfly_y*15 + (-g_mouse_y * 2) + 1) / 16);
   pushMatrix(ModelMatrix);
   ModelMatrix.setTranslate(0, 0, 0);
   ModelMatrix.setScale(g_aspect, 1, 1);
@@ -571,10 +567,20 @@ function drawStalk(c_sway) {
 }
 
 function drawDragonfly() {
+  // Chase the mouse around
+  var g_dragonfly_x_move = ((g_dragonfly_x * 15 + (g_mouse_x * 2) - 2) / 16) - g_dragonfly_x;
+  var g_dragonfly_y_move = ((g_dragonfly_y * 15 + (-g_mouse_y * 2) + 1) / 16) - g_dragonfly_y;
+  g_dragonfly_x += g_dragonfly_x_move;
+  g_dragonfly_y += g_dragonfly_y_move;
+
   /* Group: Dragonfly */
   pushMatrix(ModelMatrix);
+  ModelMatrix.translate(g_dragonfly_x * Math.cos(tracker.global_y_rot * Math.PI / 180), g_dragonfly_y, g_dragonfly_x * Math.sin(tracker.global_y_rot * Math.PI / 180));
   ModelMatrix.scale(.1,.1,.1);
+  ModelMatrix.rotate(180 * g_dragonfly_x_move * 10, 0, 1, 0);
+  ModelMatrix.rotate(180 * g_dragonfly_y_move * -10, 1, 0, 0);
   ModelMatrix.rotate(90, 1, 0, 0);
+  ModelMatrix.rotate(90, 0, 1, 0);
   updateModelMatrix(ModelMatrix);
 
   drawAbdomen();

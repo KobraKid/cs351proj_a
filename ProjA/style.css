@@ -7,6 +7,10 @@ html, body {
   overflow: hidden;
 }
 
+html, body, canvas {
+  cursor: url(mosquito.png), auto;
+}
+
 code {
   color: white;
   border-radius: 4px;
