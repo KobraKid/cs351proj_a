@@ -30,6 +30,10 @@ var cattail_count = 8;
 var g_cattails = [];
 var g_cattail_max_sway = 7;
 var g_cattail_rate = 4.8;
+// Dragonflies
+var dragonfly_count = 3;
+var g_dragonflies = [];
+var g_dragonfly_timeout = 40;
 // Wings
 var g_wing_angle = 0;
 var g_wing_angle_last = Date.now();
@@ -77,13 +81,57 @@ var GuiTracker = function() {
   this.global_z_rot = 0;
   this.animate_toggle = true;
   this.cattail_sway = true;
+  this.addDragonfly = function() {
+    tracker.animate_toggle = false;
+    setTimeout(function(){
+      dragonfly_count++;
+      addDragonfly();
+      tracker.animate_toggle = true;
+      g_last = Date.now();
+      for (var i = 0; i < g_cattails.length; i++) {g_cattails[i][4] = Date.now();}
+      tick();
+    }, 10);
+  };
+  this.addCattail = function() {
+    tracker.animate_toggle = false;
+    setTimeout(function(){
+      cattail_count++;
+      addCattail();
+      tracker.animate_toggle = true;
+      g_last = Date.now();
+      for (var i = 0; i < g_cattails.length; i++) {g_cattails[i][4] = Date.now();}
+      tick();
+    }, 10);
+  };
+  this.removeDragonfly = function() {
+    tracker.animate_toggle = false;
+    setTimeout(function(){
+      dragonfly_count--;
+      removeDragonfly();
+      tracker.animate_toggle = true;
+      g_last = Date.now();
+      for (var i = 0; i < g_cattails.length; i++) {g_cattails[i][4] = Date.now();}
+      tick();
+    }, 10);
+  };
+  this.removeCattail = function() {
+    tracker.animate_toggle = false;
+    setTimeout(function(){
+      cattail_count--;
+      removeCattail();
+      tracker.animate_toggle = true;
+      g_last = Date.now();
+      for (var i = 0; i < g_cattails.length; i++) {g_cattails[i][4] = Date.now();}
+      tick();
+    }, 10);
+  };
   this.reset = function() {
-      this.global_x_pos = this.global_y_pos = this.global_z_pos = 0;
-      this.global_x_rot = this.global_y_rot = this.global_z_rot = 0;
-      this.global_x_scale = this.global_y_scale = this.global_z_scale = 1;
-      g_xMdragTot = 0.0;
-      g_yMdragTot = 0.0;
-      draw();
+    this.global_x_pos = this.global_y_pos = this.global_z_pos = 0;
+    this.global_x_rot = this.global_y_rot = this.global_z_rot = 0;
+    this.global_x_scale = this.global_y_scale = this.global_z_scale = 1;
+    g_xMdragTot = 0.0;
+    g_yMdragTot = 0.0;
+    draw();
   };
 }
 var tracker = new GuiTracker();
@@ -124,23 +172,56 @@ function main() {
           event=event||window.event;if(event.pageX==null&&event.clientX!=null){eventDoc=(event.target&&event.target.ownerDocument)||document;doc=eventDoc.documentElement;body=eventDoc.body;event.pageX=event.clientX+(doc&&doc.scrollLeft||body&&body.scrollLeft||0)-(doc&&doc.clientLeft||body&&body.clientLeft||0);event.pageY=event.clientY+(doc&&doc.scrollTop||body&&body.scrollTop||0)-(doc&&doc.clientTop||body&&body.clientTop||0);}
           g_mouse_x = event.pageX / (window.innerWidth * g_aspect);
           g_mouse_y = event.pageY / window.innerHeight;
+          for (var i = 0; i < g_dragonflies.length; i++) {
+            g_dragonflies[i][4] = Math.random() * 0.8 / g_aspect;
+            g_dragonflies[i][5] = Math.random() * 0.8;
+            g_dragonflies[i][6] = g_dragonfly_timeout;
+          }
       }
   })(); // mousemove
 
   /* Randomize forest */
   for (var i = 0; i < cattail_count; i++) {
-    g_cattails.push([
-      Math.random()*2 - 1,                // x
-      0,                                  // y
-      Math.random() - 0.5,                // z
-      Math.random() * g_cattail_max_sway, // starting angle
-      Date.now(),                         // last tick
-      Math.random() < 0.5 ? -1 : 1        // starting direction
-    ]);
+    addCattail();
+  }
+  /* Randomize Dragonflies */
+  for (var i = 0; i < dragonfly_count; i++) {
+    addDragonfly();
   }
 
   /* Start main draw loop */
   tick();
+}
+
+function addDragonfly() {
+  g_dragonflies.push([
+    Math.random()*2-1,              // x
+    Math.random()*2-1,              // y
+    Math.random()*0.5,              // offset x
+    Math.random()*0.5,              // offset y
+    Math.random() * 0.8 / g_aspect, // random point of interest x
+    Math.random() * 0.8,            // random point of interest y
+    0                               // timeout
+  ]);
+}
+
+function removeDragonfly() {
+  g_dragonflies.pop();
+}
+
+function addCattail() {
+  g_cattails.push([
+    Math.random()*2 - 1,                // x
+    0,                                  // y
+    Math.random() - 0.5,                // z
+    Math.random() * g_cattail_max_sway, // starting angle
+    Date.now(),                         // last tick
+    Math.random() < 0.5 ? -1 : 1        // starting direction
+  ]);
+}
+
+function removeCattail() {
+  g_cattails.pop();
 }
 
 /*
@@ -179,6 +260,12 @@ function initGui() {
   rotate.add(tracker, 'global_y_rot', -360, 360).listen();
   rotate.add(tracker, 'global_z_rot', -360, 360).listen();
   // rotate.open();
+  var manage_objects = gui.addFolder('Manage Objects');
+  manage_objects.add(tracker, 'addDragonfly');
+  manage_objects.add(tracker, 'removeDragonfly');
+  manage_objects.add(tracker, 'addCattail');
+  manage_objects.add(tracker, 'removeCattail');
+  manage_objects.open();
   gui.add(tracker, 'reset');
   gui.close();
 }
@@ -438,31 +525,13 @@ function draw() {
   ModelMatrix.rotate(tracker.global_z_rot, 0, 0, 1);
   ModelMatrix.scale(tracker.global_x_scale, tracker.global_y_scale, tracker.global_z_scale);
 
-  drawDragonfly();
+  for (var i = 0; i < dragonfly_count; i++) {
+    drawDragonfly(i);
+  }
 
   for (var i = 0; i < cattail_count; i++) {
     drawCattail(g_cattails[i][0], g_cattails[i][1], g_cattails[i][2], g_cattails[i][3]);
   }
-}
-
-/*
- * Proof-of-concept mouse-following object.
- *
- * Uses mouse move events to track the mouse and redraw an arbitrary shape
- * at the mouse position.
- */
-function drawTest() {
-  pushMatrix(ModelMatrix);
-  ModelMatrix.setTranslate(0, 0, 0);
-  ModelMatrix.setScale(g_aspect, 1, 1);
-  ModelMatrix.translate(g_dragonfly_x, g_dragonfly_y, g_dragonfly_z);
-  ModelMatrix.rotate(tracker.global_x_rot, 1, 0, 0);
-  ModelMatrix.rotate(tracker.global_y_rot, 0, 1, 0);
-  ModelMatrix.rotate(tracker.global_z_rot, 0, 0, 1);
-  ModelMatrix.scale(0.3, 0.3, 0.3);
-  updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
-  ModelMatrix = popMatrix();
 }
 
 /*
@@ -566,21 +635,37 @@ function drawStalk(c_sway) {
   ModelMatrix = popMatrix();
 }
 
-function drawDragonfly() {
+function drawDragonfly(d) {
   // Chase the mouse around
-  var g_dragonfly_x_move = ((g_dragonfly_x * 15 + (g_mouse_x * 2) - 2) / 16) - g_dragonfly_x;
-  var g_dragonfly_y_move = ((g_dragonfly_y * 15 + (-g_mouse_y * 2) + 1) / 16) - g_dragonfly_y;
-  g_dragonfly_x += g_dragonfly_x_move;
-  g_dragonfly_y += g_dragonfly_y_move;
+  var dragonfly_x_move = ((g_dragonflies[d][0] * 15 + ((g_dragonflies[d][6] == 0 ? g_dragonflies[d][4] : g_mouse_x) * 2) - 2) / 16) - g_dragonflies[d][0];
+  var dragonfly_y_move = ((g_dragonflies[d][1] * 15 + ((g_dragonflies[d][6] == 0 ? -g_dragonflies[d][5] : -g_mouse_y) * 2) + 1) / 16) - g_dragonflies[d][1];
+
+  // console.log(g_dragonflies[d][4] + ', ' + g_dragonflies[d][5]);
+  if ((Math.abs(dragonfly_x_move) < 0.005 && Math.abs(dragonfly_y_move) < 0.005)
+    || (g_dragonflies[d][6] > 0 && Math.abs(dragonfly_x_move) < 0.05 && Math.abs(dragonfly_y_move) < 0.05)) {
+      if (g_dragonflies[d][6] > 0) {
+        g_dragonflies[d][6] -= 1;
+      } else {
+        g_dragonflies[d][4] = Math.random() * 0.8 / g_aspect;
+        g_dragonflies[d][5] = Math.random() * 0.8;
+      }
+  }
+
+  g_dragonflies[d][0] += dragonfly_x_move;
+  g_dragonflies[d][1] += dragonfly_y_move;
 
   /* Group: Dragonfly */
   pushMatrix(ModelMatrix);
-  ModelMatrix.translate(g_dragonfly_x * Math.cos(tracker.global_y_rot * Math.PI / 180), g_dragonfly_y, g_dragonfly_x * Math.sin(tracker.global_y_rot * Math.PI / 180));
+  ModelMatrix.translate(
+    (g_dragonflies[d][0] + g_dragonflies[d][2]) * Math.cos(tracker.global_y_rot * Math.PI / 180),
+    (g_dragonflies[d][1] + g_dragonflies[d][3]),
+    (g_dragonflies[d][0] + g_dragonflies[d][2]) * Math.sin(tracker.global_y_rot * Math.PI / 180));
   ModelMatrix.scale(.1,.1,.1);
-  ModelMatrix.rotate(180 * g_dragonfly_x_move * 10, 0, 1, 0);
-  ModelMatrix.rotate(180 * g_dragonfly_y_move * -10, 1, 0, 0);
+  ModelMatrix.rotate(-tracker.global_y_rot, 0, 1, 0);
+  ModelMatrix.rotate(-tracker.global_z_rot, 0, 0, 1);
+  ModelMatrix.rotate(180 * dragonfly_x_move * 10, 0, 1, 0);
+  ModelMatrix.rotate(180 * dragonfly_y_move * -10, 1, 0, 0);
   ModelMatrix.rotate(90, 1, 0, 0);
-  ModelMatrix.rotate(90, 0, 1, 0);
   updateModelMatrix(ModelMatrix);
 
   drawAbdomen();
