@@ -19,19 +19,28 @@ var g_aspect = window.innerHeight / window.innerWidth;
 // Transformation vars
 var ModelMatrix;
 var g_step = 8.0; // [4, +inf]
+var wing_start;
 
 // Animation vars
 var g_last = Date.now();
 var g_angle = 0.0;
+var g_angle_rate = 45.0;
+// Cattails
 var cattail_count = 8;
 var g_cattails = [];
 var g_cattail_max_sway = 7;
 var g_cattail_rate = 4.8;
-var g_angleRate = 45.0;
+// Wings
+var g_wing_angle = 0;
+var g_wing_angle_last = Date.now();
+var g_wing_angle_rate = 450;
+var g_wing_dir = 1;
+// Tick function
 var tick = function() {
   if (tracker.animate_toggle) {
     draw();
     g_angle = animate(g_angle);
+    g_wing_angle = animateWings(g_wing_angle);
     if (tracker.cattail_sway) {
       for (var i = 0; i < g_cattails.length; i++) {
         sway(i);
@@ -49,6 +58,9 @@ var g_xMdragTot = 0.0;
 var g_yMdragTot = 0.0;
 var g_mouse_x = 1.0;
 var g_mouse_y = 0.5;
+var g_dragonfly_x = 0;
+var g_dragonfly_y = 0;
+var g_dragonfly_z = 0;
 
 // GUI vars
 var gui;
@@ -92,6 +104,8 @@ function main() {
   ModelMatrix = new Matrix4();
   updateModelMatrix(ModelMatrix);
   gl.clearColor(0.5, 0.7, 1, 1.0);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
   /* Init Functions */
   initGui();
@@ -199,7 +213,7 @@ function initVBO() {
   /* CONE */
   // Tip: {start: (g_step * 6) + 4, len: 1}
   pos.push(0, 0, 1, 1);
-  colors.push(13.0/255.0, 173.0/255.0, 10.0/255.0, 1);
+  colors.push(19.0/255.0, 120.0/255.0, 46.0/255.0, 1);
   // Circumfrence: {start: (g_step * 6) + 5, len: (g_step * 2) + 2}
   for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
     pos.push(Math.cos(theta), Math.sin(theta), 0, 1);
@@ -211,7 +225,199 @@ function initVBO() {
     pos.push(Math.cos(theta), Math.sin(theta), 0, 1);
     pos.push(Math.cos(theta), Math.sin(theta), 1, 1);
     colors.push(13.0/255.0, 173.0/255.0, 10.0/255.0, 1);
-    colors.push(13.0/255.0, 173.0/255.0, 10.0/255.0, 1);
+    colors.push(16.0/255.0, 163.0/255.0, 55.0/255.0, 1);
+  }
+
+  /* Order of push:
+     1. Top right wing (front/z+): 0-46
+     2. Bottom right wing (front/z+): 47-93
+     3. Bottom right wing (back/z-): 94-140
+     4. Top right wing (back/z-): 141-187
+     5. Abdomen (circle of cylinder): 188-205
+     6. Abdomen (tube of cylinder): 206-239
+     7. Abdomen (tip of cone): 240-240
+     8. Abdomen (circumference of cone): 241- 258 */
+
+  // The top right wing
+  wing_start = pos.length / 4;
+  pos.push( -1.0, 0.0, 0.0, 1.0,   // vertex 1
+            -0.97,-0.076,0.0, 1.0, // vertex 2
+            -0.97, 0.05, 0.0, 1.0, // vertex 3
+            -0.95,-0.10, 0.0, 1.0, // vertex 4
+            -0.95, 0.07, 0.0, 1.0, // vertex 5
+            -0.90,-0.12, 0.0, 1.0, // vertex 6
+            -0.90, 0.09, 0.0, 1.0, // vertex 7
+            -0.80,-0.17, 0.0, 1.0, // vertex 8
+            -0.80, 0.12, 0.0, 1.0, // vertex 9
+            -0.70,-0.20, 0.0, 1.0, // vertex 10
+            -0.70, 0.15, 0.0, 1.0, // vertex 11
+            -0.60,-0.21, 0.0, 1.0, // vertex 12
+            -0.60, 0.16, 0.0, 1.0, // vertex 13
+            -0.50,-0.22, 0.0, 1.0, // vertex 14
+            -0.50, 0.16, 0.0, 1.0, // vertex 15
+            -0.40,-0.24, 0.0, 1.0, // vertex 16
+            -0.40, 0.16, 0.0, 1.0, // vertex 17
+            -0.30,-0.27, 0.0, 1.0, // vertex 18
+            -0.30, 0.15, 0.0, 1.0, // vertex 19
+            -0.20,-0.29, 0.0, 1.0, // vertex 20
+            -0.20, 0.15, 0.0, 1.0, // vertex 21
+            -0.10,-0.30, 0.0, 1.0, // vertex 22
+            -0.10, 0.16, 0.0, 1.0, // vertex 23
+             0.00,-0.30, 0.0, 1.0, // vertex 24
+             0.00, 0.17, 0.0, 1.0, // vertex 25
+             0.10,-0.29, 0.0, 1.0, // vertex 26
+             0.10, 0.18, 0.0, 1.0, // vertex 27
+             0.20,-0.27, 0.0, 1.0, // vertex 28
+             0.20, 0.19, 0.0, 1.0, // vertex 29
+             0.30,-0.24, 0.0, 1.0, // vertex 30
+             0.30, 0.20, 0.0, 1.0, // vertex 31
+             0.40,-0.20, 0.0, 1.0, // vertex 32
+             0.40, 0.21, 0.0, 1.0, // vertex 33
+             0.50,-0.15, 0.0, 1.0, // vertex 34
+             0.50, 0.23, 0.0, 1.0, // vertex 35
+             0.60,-0.12, 0.0, 1.0, // vertex 36
+             0.60, 0.24, 0.0, 1.0, // vertex 37
+             0.70,-0.09, 0.0, 1.0, // vertex 38
+             0.70, 0.22, 0.0, 1.0, // vertex 39
+             0.75,-0.06, 0.0, 1.0, // vertex 40
+             0.75, 0.20, 0.0, 1.0, // vertex 41
+             0.80,-0.03, 0.0, 1.0, // vertex 42
+             0.80, 0.17, 0.0, 1.0, // vertex 43
+             0.85, 0.00, 0.0, 1.0, // vertex 44
+             0.85, 0.12, 0.0, 1.0, // vertex 45
+             0.86, 0.02, 0.0, 1.0, // vertex 46
+             0.86, 0.06, 0.0, 1.0); // vertex 47
+
+  // The bottom right wing
+  pos.push( -1.0, 0.0, 0.0, 1.0,   // vertex 1
+            -0.97,-0.03, 0.0, 1.0, // vertex 2
+            -0.97, 0.05, 0.0, 1.0, // vertex 3
+            -0.95,-0.20, 0.0, 1.0, // vertex 4
+            -0.95, 0.07, 0.0, 1.0, // vertex 5
+            -0.90,-0.22, 0.0, 1.0, // vertex 6
+            -0.90, 0.09, 0.0, 1.0, // vertex 7
+            -0.80,-0.24, 0.0, 1.0, // vertex 8
+            -0.80, 0.12, 0.0, 1.0, // vertex 9
+            -0.70,-0.26, 0.0, 1.0, // vertex 10
+            -0.70, 0.15, 0.0, 1.0, // vertex 11
+            -0.60,-0.28, 0.0, 1.0, // vertex 12
+            -0.60, 0.16, 0.0, 1.0, // vertex 13
+            -0.50,-0.30, 0.0, 1.0, // vertex 14
+            -0.50, 0.16, 0.0, 1.0, // vertex 15
+            -0.40,-0.32, 0.0, 1.0, // vertex 16
+            -0.40, 0.16, 0.0, 1.0, // vertex 17
+            -0.30,-0.34, 0.0, 1.0, // vertex 18
+            -0.30, 0.15, 0.0, 1.0, // vertex 19
+            -0.20,-0.34, 0.0, 1.0, // vertex 20
+            -0.20, 0.15, 0.0, 1.0, // vertex 21
+            -0.10,-0.34, 0.0, 1.0, // vertex 22
+            -0.10, 0.16, 0.0, 1.0, // vertex 23
+             0.00,-0.34, 0.0, 1.0, // vertex 24
+             0.00, 0.17, 0.0, 1.0, // vertex 25
+             0.10,-0.34, 0.0, 1.0, // vertex 26
+             0.10, 0.18, 0.0, 1.0, // vertex 27
+             0.20,-0.34, 0.0, 1.0, // vertex 28
+             0.20, 0.19, 0.0, 1.0, // vertex 29
+             0.30,-0.32, 0.0, 1.0, // vertex 30
+             0.30, 0.20, 0.0, 1.0, // vertex 31
+             0.40,-0.28, 0.0, 1.0, // vertex 32
+             0.40, 0.21, 0.0, 1.0, // vertex 33
+             0.50,-0.24, 0.0, 1.0, // vertex 34
+             0.50, 0.23, 0.0, 1.0, // vertex 35
+             0.60,-0.20, 0.0, 1.0, // vertex 36
+             0.60, 0.24, 0.0, 1.0, // vertex 37
+             0.70,-0.17, 0.0, 1.0, // vertex 38
+             0.70, 0.22, 0.0, 1.0, // vertex 39
+             0.75,-0.14, 0.0, 1.0, // vertex 40
+             0.75, 0.20, 0.0, 1.0, // vertex 41
+             0.80,-0.11, 0.0, 1.0, // vertex 42
+             0.80, 0.17, 0.0, 1.0, // vertex 43
+             0.85,-0.08, 0.0, 1.0, // vertex 44
+             0.85, 0.12, 0.0, 1.0, // vertex 45
+             0.86, 0.02, 0.0, 1.0, // vertex 46
+             0.86, 0.06, 0.0, 1.0); // vertex 47
+
+   var pos_length = pos.length;
+   for (var c = pos_length - 1; c >= wing_start * 4; c -= 4) {
+     pos.push(pos[c - 3], pos[c - 2], pos[c - 1], pos[c]);
+   }
+
+   var pos_length2 = pos.length;
+   for (var c = pos_length - 1; c >= wing_start*4; c -= 32) {
+    colors.push(.05, .10, .55, 1);
+    colors.push(0.5, 0.7, 1, 0);
+    colors.push(0.5, 0.7, 1, 0);
+    colors.push(.05, .10, .55, 1);
+    colors.push(.05, .10, .55, 1);
+    colors.push(0.5, 0.7, 1, 0);
+    colors.push(0.5, 0.7, 1, 0);
+    colors.push(.05, .10, .55, 1);
+    colors.push(.05, .10, .55, 1);
+    colors.push(.05, .10, .55, 1);
+    colors.push(0.5, 0.7, 1, 0)
+    colors.push(0.5, 0.7, 1, 0)
+    colors.push(.05, .10, .55, 1);
+    colors.push(0.5, 0.7, 1, 0)
+    colors.push(0.5, 0.7, 1, 0)
+    colors.push(.05, .10, .55, 1);
+
+  }
+
+   /* ABDOMEN */
+
+   // Circle: {start: 188, len: (g_step * 2) + 2}
+   pos.push(0, 0, 0, 1);
+   colors.push(.03, .13, .29, 1);
+   for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
+     pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
+     colors.push(.03, .25, .68, 1);
+   }
+
+  // Brown Tube: {start: 206, len: (g_step * 4) + 2}
+   for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
+     pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
+     pos.push(Math.cos(theta), 1, Math.sin(theta), 1);
+     colors.push(.03, .13, .29, 1);
+     colors.push(.03, .13, .29, 1);
+   }
+
+   // Cone Tip: {start: (g_step * 6) + 4, len: 1}
+   pos.push(0, 1, 0, 1);
+   colors.push(.03, .13, .29, 1);
+
+   // Cone Circumfrence: {start: (g_step * 6) + 5, len: (g_step * 2) + 2}
+   for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
+     pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
+     colors.push(.03, .13, .29, 1);
+   }
+
+   // Head cube: {start: (g_step * 8) + 7, len: 9}
+   pos.push( 0, 1, 1, 1,
+             0, 0, 1, 1,
+             1, 1, 1, 1,
+             1, 0, 1, 1,
+             1, 1, 0, 1,
+             1, 0, 0, 1,
+             0, 1, 0, 1,
+             0, 0, 0, 1,
+             0, 1, 1, 1,
+             0, 0, 1, 1,
+             0, 1, 1, 1,
+             1, 1, 1, 1,
+             0, 1, 0, 1,
+             1, 1, 0, 1,
+             1, 0, 0, 1,
+             1, 0, 1, 1,
+             0, 0, 0, 1,
+             0, 0, 1, 1);
+  for (var i = 0; i < 18; i++) {
+     colors.push(.03, .13, .29, 1);
+  }
+
+  var sphereVerts = makeSphere2(12, 21);
+  for (var i = 0; i < sphereVerts.length; i += 7) {
+    pos.push(sphereVerts[i], sphereVerts[i+1], sphereVerts[i+2], sphereVerts[i+3]);
+    colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
   }
 
   appendPositions(pos);
@@ -232,7 +438,7 @@ function draw() {
   ModelMatrix.rotate(tracker.global_z_rot, 0, 0, 1);
   ModelMatrix.scale(tracker.global_x_scale, tracker.global_y_scale, tracker.global_z_scale);
 
-  drawTest();
+  drawDragonfly();
 
   for (var i = 0; i < cattail_count; i++) {
     drawCattail(g_cattails[i][0], g_cattails[i][1], g_cattails[i][2], g_cattails[i][3]);
@@ -249,11 +455,13 @@ function drawTest() {
   pushMatrix(ModelMatrix);
   ModelMatrix.setTranslate(0, 0, 0);
   ModelMatrix.setScale(g_aspect, 1, 1);
-  ModelMatrix.translate(tracker.global_x_pos, tracker.global_y_pos, tracker.global_z_pos);
-  ModelMatrix.translate((g_mouse_x * 2) - 2, (-g_mouse_y * 2) + 1, 0);
+  ModelMatrix.translate(g_dragonfly_x, g_dragonfly_y, g_dragonfly_z);
+  ModelMatrix.rotate(tracker.global_x_rot, 1, 0, 0);
+  ModelMatrix.rotate(tracker.global_y_rot, 0, 1, 0);
+  ModelMatrix.rotate(tracker.global_z_rot, 0, 0, 1);
   ModelMatrix.scale(0.3, 0.3, 0.3);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
   ModelMatrix = popMatrix();
 }
 
@@ -273,95 +481,283 @@ function drawCattail(c_x, c_y, c_z, c_sway) {
     pushMatrix(ModelMatrix);
     ModelMatrix.translate(c_x, c_y, c_z);
 
-    // Group: Stalk
-    pushMatrix(ModelMatrix);
-
-    // Object: Stem
-    var stalk_divisions = 12.0;
-    var stalk_height = 1.0;
-    ModelMatrix.translate(0, -1, 0);
-
-    for (var i = 0; i < stalk_divisions; i++) {
-      pushMatrix(ModelMatrix);
-      ModelMatrix.rotate(270, 1, 0, 0);
-      ModelMatrix.rotate(c_sway / stalk_divisions * i, 0, 1, 0);
-      ModelMatrix.translate(0, 0, 0.99/stalk_divisions * i);
-      ModelMatrix.rotate(c_sway / stalk_divisions * i, 0, 1, 0);
-      ModelMatrix.scale(0.02, 0.02, stalk_height/stalk_divisions);
-      updateModelMatrix(ModelMatrix);
-      gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 8) + 6, (g_step * 4) + 2);
-      ModelMatrix = popMatrix();
-    }
-
-    // TODO Object: Leaf? If we have time.
-
-    // End Group: Stalk
-    ModelMatrix = popMatrix();
-
-    // Group: Head
-    ModelMatrix.translate(0, -1, 0);
-    ModelMatrix.rotate(-c_sway, 0, 0, 1);
-    ModelMatrix.translate(0, 1, 0);
-    ModelMatrix.rotate(-c_sway, 0, 0, 1);
-    pushMatrix(ModelMatrix);
-
-    // Object: Head
-    ModelMatrix.rotate(270, 1, 0, 0);
-    ModelMatrix.scale(0.05, 0.05, 0.3);
-    ModelMatrix.translate(0, 0, 0.05);
-    updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 2) + 2, (g_step * 4) + 2);
-
-    ModelMatrix = popMatrix();
-    pushMatrix(ModelMatrix);
-    ModelMatrix.translate(0, 0.025, 0);
-    ModelMatrix.rotate(-tracker.global_x_rot, 1, 0, 0);
-    ModelMatrix.rotate(-tracker.global_y_rot, 0, 1, 0);
-    ModelMatrix.rotate(-tracker.global_z_rot, 0, 0, 1);
-    ModelMatrix.scale(0.05, 0.05, 1);
-    updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2); // TODO Draw sphere
-
-    ModelMatrix = popMatrix();
-    pushMatrix(ModelMatrix);
-    ModelMatrix.translate(0, 0.3125, 0);
-    ModelMatrix.rotate(-tracker.global_x_rot, 1, 0, 0);
-    ModelMatrix.rotate(-tracker.global_y_rot, 0, 1, 0);
-    ModelMatrix.rotate(-tracker.global_z_rot, 0, 0, 1);
-    ModelMatrix.scale(0.05, 0.05, 1);
-    updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_FAN, 0, (g_step * 2) + 2); // TODO Draw sphere
-
-    // End Group: Head
-    ModelMatrix = popMatrix();
-
-    // Group: Tip
-    pushMatrix(ModelMatrix);
-
-    // Object: Tip
-    ModelMatrix.translate(0, 0.36, 0); // can be moved back down to ~0.33 after spheres implemented
-    ModelMatrix.rotate(270, 1, 0, 0);
-    ModelMatrix.scale(0.01, 0.01, 0.25); // w, d, h
-    updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 4, (g_step * 2) + 2);
-    ModelMatrix.rotate(180, 1, 0, 0);
-    updateModelMatrix(ModelMatrix);
-    gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 5, (g_step * 2) + 2);
-
-    // End Group: Tip
-    ModelMatrix = popMatrix();
+    drawCattailHead(c_sway);
+    drawStalk(c_sway);
 
     /* End Group: Cattail */
     ModelMatrix = popMatrix();
+}
+
+function drawCattailHead(c_sway) {
+  // Group: Head
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(0, -1, 0);
+  ModelMatrix.rotate(-c_sway, 0, 0, 1);
+  ModelMatrix.translate(0, 1.01, 0);
+  ModelMatrix.rotate(-c_sway, 0, 0, 1);
+
+  // Group: Tip
+  pushMatrix(ModelMatrix);
+
+  // Object: Tip
+  ModelMatrix.translate(0, 0.36, 0);
+  ModelMatrix.rotate(270, 1, 0, 0);
+  ModelMatrix.scale(0.01, 0.01, 0.25); // w, d, h
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 4, (g_step * 2) + 2);
+  ModelMatrix.rotate(180, 1, 0, 0);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 5, (g_step * 2) + 2);
+
+  // End Group: Tip
+  ModelMatrix = popMatrix();
+
+  // Object: Head
+  pushMatrix(ModelMatrix);
+  ModelMatrix.rotate(270, 1, 0, 0);
+  ModelMatrix.scale(0.05, 0.05, 0.3);
+  ModelMatrix.translate(0, 0, 0.05);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 2) + 2, (g_step * 4) + 2);
+  ModelMatrix = popMatrix();
+
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(0, 0.025, 0);
+  ModelMatrix.scale(0.05, 0.05, 0.05);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
+  ModelMatrix = popMatrix();
+
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(0, 0.3125, 0);
+  ModelMatrix.scale(0.05, 0.05, 0.05);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
+  ModelMatrix = popMatrix();
+
+  // End Group: Head
+  ModelMatrix = popMatrix();
+}
+
+function drawStalk(c_sway) {
+  // Group: Stalk
+  pushMatrix(ModelMatrix);
+
+  // Object: Stem
+  var stalk_divisions = 12.0;
+  var stalk_height = 1.0;
+  ModelMatrix.translate(0, -1, 0);
+
+  for (var i = 0; i < stalk_divisions; i++) {
+    pushMatrix(ModelMatrix);
+    ModelMatrix.rotate(270, 1, 0, 0);
+    ModelMatrix.rotate(c_sway / stalk_divisions * i, 0, 1, 0);
+    ModelMatrix.translate(0, 0, 0.99/stalk_divisions * i);
+    ModelMatrix.rotate(c_sway / stalk_divisions * i, 0, 1, 0);
+    ModelMatrix.scale(0.02, 0.02, stalk_height/stalk_divisions);
+    updateModelMatrix(ModelMatrix);
+    gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 8) + 6, (g_step * 4) + 2);
+    ModelMatrix = popMatrix();
+  }
+
+  // TODO Object: Leaf? If we have time.
+
+  // End Group: Stalk
+  ModelMatrix = popMatrix();
+}
+
+function drawDragonfly() {
+  // Chase the mouse around
+  var g_dragonfly_x_move = ((g_dragonfly_x * 15 + (g_mouse_x * 2) - 2) / 16) - g_dragonfly_x;
+  var g_dragonfly_y_move = ((g_dragonfly_y * 15 + (-g_mouse_y * 2) + 1) / 16) - g_dragonfly_y;
+  g_dragonfly_x += g_dragonfly_x_move;
+  g_dragonfly_y += g_dragonfly_y_move;
+
+  /* Group: Dragonfly */
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(g_dragonfly_x * Math.cos(tracker.global_y_rot * Math.PI / 180), g_dragonfly_y, g_dragonfly_x * Math.sin(tracker.global_y_rot * Math.PI / 180));
+  ModelMatrix.scale(.1,.1,.1);
+  ModelMatrix.rotate(180 * g_dragonfly_x_move * 10, 0, 1, 0);
+  ModelMatrix.rotate(180 * g_dragonfly_y_move * -10, 1, 0, 0);
+  ModelMatrix.rotate(90, 1, 0, 0);
+  ModelMatrix.rotate(90, 0, 1, 0);
+  updateModelMatrix(ModelMatrix);
+
+  drawAbdomen();
+  drawWings();
+  drawTail();
+
+  /* End Group: Dragonfly */
+  ModelMatrix = popMatrix();
+}
+
+function drawAbdomen() {
+  // Group: Abdomen
+
+  // Object: Body
+  pushMatrix(ModelMatrix);
+  ModelMatrix.scale(0.15, 1.1, 0.15);
+  ModelMatrix.translate(0, -.05, 0);
+  ModelMatrix.scale(1, .6, -1);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, wing_start+206, 34);
+  ModelMatrix = popMatrix();
+
+  // Object: Cone (near head)
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(0,.6,0);
+  ModelMatrix.scale(0.15,.15,0.15);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN, wing_start+240, 18);
+  ModelMatrix = popMatrix();
+
+  // Group: Head
+
+  // Object: Square
+  pushMatrix(ModelMatrix);
+  ModelMatrix.scale(.15, .2, -.15);
+  ModelMatrix.translate(-.5, 3.5, -.5);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, wing_start+258, 18);
+  ModelMatrix = popMatrix();
+
+  // Object: Left eye
+  pushMatrix(ModelMatrix);
+  ModelMatrix.rotate(270, 1, 0, 0);
+  ModelMatrix.translate(0.064, 0.05, 0.8);
+  ModelMatrix.scale(-0.08, 0.08, 0.08);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
+  ModelMatrix = popMatrix();
+
+  // Object: Right eye
+  pushMatrix(ModelMatrix);
+  ModelMatrix.rotate(270, 1, 0, 0);
+  ModelMatrix.translate(-0.064, 0.05, 0.8);
+  ModelMatrix.scale(-0.08, 0.08, 0.08);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
+  ModelMatrix = popMatrix();
+
+  // End Group: Head
+
+  // Object: Cone (near tail)
+  pushMatrix(ModelMatrix);
+  ModelMatrix.rotate(180,0,0,1);
+  ModelMatrix.scale(0.15,.3,0.15);
+  ModelMatrix.translate(0,.1,0);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN, wing_start+240, 18);
+  ModelMatrix = popMatrix();
+
+  // End Group: Abdomen
+}
+
+function drawTail() {
+  // Group: Tail
+
+  pushMatrix(ModelMatrix);
+  ModelMatrix.scale(0.05,.1,0.05);
+  ModelMatrix.translate(0,-3,0);
+  ModelMatrix.scale(1,1,-1);
+  updateModelMatrix(ModelMatrix);
+
+  // First cylinder of tail
+  gl.drawArrays(gl.TRIANGLE_STRIP, wing_start+206, 34);
+
+  // Rest of the cylinders on the tail
+  for (var i = 0; i < 12; i++) {
+    ModelMatrix.translate(0,-1,0);
+    updateModelMatrix(ModelMatrix);
+    gl.drawArrays(gl.TRIANGLE_STRIP, wing_start+206, 34);
+  }
+
+  // Cone on the tip of the tail
+  ModelMatrix.scale(1,-.4,1);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_FAN, wing_start+240,18);
+  ModelMatrix = popMatrix();
+
+  // End Group: Tail
+}
+
+function drawWings() {
+  // Group: Wings
+
+  // Object: Front and back of lower right wing
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(-1.0,0,0);
+  ModelMatrix.rotate(g_wing_angle,0,1,0);
+  ModelMatrix.translate(Math.cos(g_wing_angle*Math.PI/180),0,Math.sin(g_wing_angle*Math.PI/180));
+  ModelMatrix.translate(1.1,0,0);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, wing_start+47,47);
+  gl.drawArrays(gl.TRIANGLE_STRIP, wing_start+94,47);
+  ModelMatrix = popMatrix();
+
+  // Object: Front and back of lower left wing
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(-1,0,0);
+  ModelMatrix.rotate(-g_wing_angle,0,1,0);
+  ModelMatrix.translate(Math.cos(-g_wing_angle*Math.PI/180),0,Math.sin(-g_wing_angle*Math.PI/180));
+  ModelMatrix.translate(-1.1,0,0);
+  ModelMatrix.scale(-1,1,1);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, wing_start+47,47);
+  gl.drawArrays(gl.TRIANGLE_STRIP, wing_start+94,47);
+  ModelMatrix = popMatrix();
+
+  // Object: Front and back of upper left wing
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(-1,0,0);
+  ModelMatrix.rotate(-g_wing_angle,0,1,0);
+  ModelMatrix.translate(Math.cos(-g_wing_angle*Math.PI/180),0,Math.sin(-g_wing_angle*Math.PI/180));
+  ModelMatrix.translate(1,.55,0);
+  ModelMatrix.rotate(14,0,0,1);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, wing_start,47);
+  gl.drawArrays(gl.TRIANGLE_STRIP, wing_start+141,47)
+  ModelMatrix = popMatrix();
+
+  // Object: Front and back of upper right wing
+  pushMatrix(ModelMatrix);
+  ModelMatrix.translate(-1,0,0);
+  ModelMatrix.rotate(g_wing_angle,0,1,0);
+  ModelMatrix.translate(Math.cos(g_wing_angle*Math.PI/180),0,Math.sin(g_wing_angle*Math.PI/180));
+  ModelMatrix.translate(-1,.55,0);
+  ModelMatrix.rotate(-14,0,0,1);
+  ModelMatrix.scale(-1,1,1);
+  updateModelMatrix(ModelMatrix);
+  gl.drawArrays(gl.TRIANGLE_STRIP, wing_start,47);
+  gl.drawArrays(gl.TRIANGLE_STRIP, wing_start+141,47);
+  ModelMatrix = popMatrix();
+
+  // End Group: Wings
 }
 
 function animate(angle) {
   var now = Date.now();
   var elapsed = now - g_last;
   g_last = now;
-  var newAngle = angle + (g_angleRate * elapsed) / 1000.0;
+  var newAngle = angle + (g_angle_rate * elapsed) / 1000.0;
   if(newAngle > 180.0) newAngle = newAngle - 360.0;
   if(newAngle <-180.0) newAngle = newAngle + 360.0;
+  return newAngle;
+}
+
+function animateWings(angle) {
+  var now = Date.now();
+  var elapsed = now - g_wing_angle_last;
+  g_wing_angle_last = now;
+  var newAngle = angle + (g_wing_angle_rate * elapsed * g_wing_dir) / 1000.0;
+  if(newAngle > 30.0) {
+    newAngle = 30;
+    g_wing_dir = -g_wing_dir;
+  }
+  if(newAngle <-30.0) {
+    newAngle = -30;
+    g_wing_dir = -g_wing_dir;
+  }
   return newAngle;
 }
 
@@ -411,8 +807,6 @@ function myMouseDown(ev) {
 	g_isDrag = true;
 	g_xMclik = x;
 	g_yMclik = y;
-  console.log(g_mouse_x);
-  console.log(g_mouse_y);
 }
 
 function myMouseMove(ev) {
