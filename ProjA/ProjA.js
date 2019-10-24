@@ -434,16 +434,16 @@ function initVBO() {
     colors.push(.05, .10, .55, 1);
     colors.push(0.5, 0.7, 1, 0);
     colors.push(0.5, 0.7, 1, 0);
-    colors.push(.05, .10, .55, 1);
-    colors.push(.05, .10, .55, 1);
+    colors.push(.05, .40, .55, 1);
+    colors.push(.05, .40, .55, 1);
     colors.push(0.5, 0.7, 1, 0);
     colors.push(0.5, 0.7, 1, 0);
     colors.push(.05, .10, .55, 1);
     colors.push(.05, .10, .55, 1);
-    colors.push(.05, .10, .55, 1);
+    colors.push(.05, .40, .55, 1);
     colors.push(0.5, 0.7, 1, 0)
     colors.push(0.5, 0.7, 1, 0)
-    colors.push(.05, .10, .55, 1);
+    colors.push(.05, .40, .55, 1);
     colors.push(0.5, 0.7, 1, 0)
     colors.push(0.5, 0.7, 1, 0)
     colors.push(.05, .10, .55, 1);
@@ -458,16 +458,27 @@ function initVBO() {
    for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
      pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
      colors.push(.03, .25, .68, 1);
+     //colors.push(.4, .5, .6, 1);
    }
 
   // Brown Tube: {start: 206, len: (g_step * 4) + 2}
    for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
      pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
      pos.push(Math.cos(theta), 1, Math.sin(theta), 1);
-     colors.push(.03, .13, .29, 1);
-     colors.push(.03, .13, .29, 1);
+ 
    }
 
+   for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step*4) {
+		colors.push(.03, .13, .29, 1);
+		colors.push(.03, .13, .29, 1);
+     	colors.push(.05, .40, .55, 1);
+     	colors.push(.05, .40, .55, 1);
+		colors.push(.05, .23, .23, 1);
+		colors.push(.05, .23, .23, 1);
+		colors.push(.05, .23, .23, 1);
+		colors.push(.03, .13, .29, 1);
+
+	}
    // Cone Tip: {start: (g_step * 6) + 4, len: 1}
    pos.push(0, 1, 0, 1);
    colors.push(.03, .13, .29, 1);
@@ -497,8 +508,10 @@ function initVBO() {
              1, 0, 1, 1,
              0, 0, 0, 1,
              0, 0, 1, 1);
-  for (var i = 0; i < 18; i++) {
+  for (var i = 0; i < 9; i++) {
      colors.push(.03, .13, .29, 1);
+     colors.push(.05, .40, .55, 1);
+
   }
 
   var sphereVerts = makeSphere2(12, 21);
