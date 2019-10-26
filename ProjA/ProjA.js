@@ -20,18 +20,22 @@ var g_aspect = window.innerHeight / window.innerWidth;
 var ModelMatrix;
 var g_step = 8.0; // [4, +inf]
 var wing_start;
+var sphereStart;
+var sphereLen;
+var sphereStart2;
+var sphereLen2;
 
 // Animation vars
 var g_last = Date.now();
 var g_angle = 0.0;
 var g_angle_rate = 45.0;
 // Cattails
-var cattail_count = 8;
+var cattail_count = 4;
 var g_cattails = [];
 var g_cattail_max_sway = 7;
 var g_cattail_rate = 4.8;
 // Dragonflies
-var dragonfly_count = 3;
+var dragonfly_count = 1;
 var g_dragonflies = [];
 var g_dragonfly_timeout = 40;
 // Wings
@@ -294,7 +298,7 @@ function initVBO() {
     pos.push(Math.cos(theta), Math.sin(theta), 0, 1);
     pos.push(Math.cos(theta), Math.sin(theta), 1, 1);
     colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
-    colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
+    colors.push(188.0/255.0, 119.0/255.0, 69.0/255.0, 1);
   }
 
   /* CONE */
@@ -424,13 +428,13 @@ function initVBO() {
              0.86, 0.02, 0.0, 1.0, // vertex 46
              0.86, 0.06, 0.0, 1.0); // vertex 47
 
-   var pos_length = pos.length;
-   for (var c = pos_length - 1; c >= wing_start * 4; c -= 4) {
-     pos.push(pos[c - 3], pos[c - 2], pos[c - 1], pos[c]);
-   }
+  var pos_length = pos.length;
+  for (var c = pos_length - 1; c >= wing_start * 4; c -= 4) {
+    pos.push(pos[c - 3], pos[c - 2], pos[c - 1], pos[c]);
+  }
 
-   var pos_length2 = pos.length;
-   for (var c = pos_length - 1; c >= wing_start*4; c -= 32) {
+  var pos_length2 = pos.length;
+  for (var c = pos_length2 - 1; c >= wing_start * 4; c -= 64) {
     colors.push(.05, .10, .55, 1);
     colors.push(0.5, 0.7, 1, 0);
     colors.push(0.5, 0.7, 1, 0);
@@ -447,7 +451,10 @@ function initVBO() {
     colors.push(0.5, 0.7, 1, 0)
     colors.push(0.5, 0.7, 1, 0)
     colors.push(.05, .10, .55, 1);
-
+  }
+  // Compensate for the fact that wings only have 47 vertices
+  while (colors.length > pos.length) {
+    colors.pop();
   }
 
    /* ABDOMEN */
@@ -501,10 +508,31 @@ function initVBO() {
      colors.push(.03, .13, .29, 1);
   }
 
+  // Sphere (brown fade): {start: sphereStart, len: sphereLen}
   var sphereVerts = makeSphere2(12, 21);
-  for (var i = 0; i < sphereVerts.length; i += 7) {
+  sphereStart = (pos.length / 4) - 1;
+  sphereLen = sphereVerts.length / 7;
+  for (var i = 0; i < sphereLen * 7; i += 7) {
     pos.push(sphereVerts[i], sphereVerts[i+1], sphereVerts[i+2], sphereVerts[i+3]);
-    colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
+    if (i >= sphereVerts.length / 2) {
+      colors.push(139.0/255.0, 69.0/255.0, 19.0/255.0, 1);
+    }
+    else {
+      colors.push(188.0/255.0, 119.0/255.0, 69.0/255.0, 1);
+    }
+  }
+
+  // Sphere (eyes): {start: sphereStart, len: sphereLen}
+  sphereVerts = makeSphere2(4, 21);
+  sphereStart2 = (pos.length / 4) - 1;
+  sphereLen2 = sphereVerts.length / 7;
+  for (var i = 0; i < sphereLen * 7; i += 7) {
+    pos.push(sphereVerts[i], sphereVerts[i+1], sphereVerts[i+2], sphereVerts[i+3]);
+    if (Math.random() < 0.25) {
+      colors.push(0, 0, 0, 1);
+    } else {
+      colors.push(1, 1, 1, 1);
+    }
   }
 
   appendPositions(pos);
@@ -571,7 +599,7 @@ function drawCattailHead(c_sway) {
   // Object: Tip
   ModelMatrix.translate(0, 0.36, 0);
   ModelMatrix.rotate(270, 1, 0, 0);
-  ModelMatrix.scale(0.01, 0.01, 0.25); // w, d, h
+  ModelMatrix.scale(-0.01, 0.01, 0.25); // w, d, h
   updateModelMatrix(ModelMatrix);
   gl.drawArrays(gl.TRIANGLE_FAN, (g_step * 6) + 4, (g_step * 2) + 2);
   ModelMatrix.rotate(180, 1, 0, 0);
@@ -592,16 +620,18 @@ function drawCattailHead(c_sway) {
 
   pushMatrix(ModelMatrix);
   ModelMatrix.translate(0, 0.025, 0);
-  ModelMatrix.scale(0.05, 0.05, 0.05);
+  ModelMatrix.rotate(90, 1, 0, 0);
+  ModelMatrix.scale(0.049, 0.049, 0.049);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
+  gl.drawArrays(gl.TRIANGLE_STRIP, sphereStart, sphereLen);
   ModelMatrix = popMatrix();
 
   pushMatrix(ModelMatrix);
   ModelMatrix.translate(0, 0.3125, 0);
-  ModelMatrix.scale(0.05, 0.05, 0.05);
+  ModelMatrix.rotate(90, 1, 0, 0);
+  ModelMatrix.scale(0.049, 0.049, 0.049);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
+  gl.drawArrays(gl.TRIANGLE_STRIP, sphereStart, sphereLen);
   ModelMatrix = popMatrix();
 
   // End Group: Head
@@ -628,8 +658,6 @@ function drawStalk(c_sway) {
     gl.drawArrays(gl.TRIANGLE_STRIP, (g_step * 8) + 6, (g_step * 4) + 2);
     ModelMatrix = popMatrix();
   }
-
-  // TODO Object: Leaf? If we have time.
 
   // End Group: Stalk
   ModelMatrix = popMatrix();
@@ -710,18 +738,18 @@ function drawAbdomen() {
   pushMatrix(ModelMatrix);
   ModelMatrix.rotate(270, 1, 0, 0);
   ModelMatrix.translate(0.064, 0.05, 0.8);
-  ModelMatrix.scale(-0.08, 0.08, 0.08);
+  ModelMatrix.scale(0.08, 0.08, 0.08);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
+  gl.drawArrays(gl.TRIANGLE_STRIP, sphereStart2, sphereLen2);
   ModelMatrix = popMatrix();
 
   // Object: Right eye
   pushMatrix(ModelMatrix);
   ModelMatrix.rotate(270, 1, 0, 0);
   ModelMatrix.translate(-0.064, 0.05, 0.8);
-  ModelMatrix.scale(-0.08, 0.08, 0.08);
+  ModelMatrix.scale(0.08, 0.08, 0.08);
   updateModelMatrix(ModelMatrix);
-  gl.drawArrays(gl.TRIANGLE_STRIP, 380, 502);
+  gl.drawArrays(gl.TRIANGLE_STRIP, sphereStart2, sphereLen2);
   ModelMatrix = popMatrix();
 
   // End Group: Head
@@ -933,8 +961,15 @@ function myMouseUp(ev) {
 }
 
 function myKeyDown(kev) {
-  switch(kev.code) {
+  var code;
+  if (!kev.code) {
+    code = "" + kev.keyCode;
+  } else {
+    code = kev.code;
+  }
+  switch(code) {
 		case "KeyP":
+    case "80":
 			if (tracker.animate_toggle) {
 			  tracker.animate_toggle = false;
 		  }
@@ -946,95 +981,116 @@ function myKeyDown(kev) {
 		  }
 			break;
     case "Slash":
+    case "191":
       toggle_help();
       break;
     case "Period":
+    case "190":
       gui_open = !gui_open;
       if (gui_open) gui.open(); else gui.close();
       break;
 		case "KeyW":
+    case "87":
     case "ArrowUp":
       tracker.global_y_pos -= 0.01;
 			break;
 		case "KeyA":
+    case "65":
     case "ArrowLeft":
       tracker.global_x_pos += 0.01;
 			break;
 		case "KeyS":
+    case "83":
     case "ArrowDown":
       tracker.global_y_pos += 0.01;
 			break;
     case "KeyD":
+    case "68":
     case "ArrowRight":
       tracker.global_x_pos -= 0.01;
 			break;
     case "KeyR":
+    case "82":
       tracker.reset();
       break;
     case "Equal":
+    case "187":
     case "NumpadAdd":
+    case "107":
       tracker.global_x_scale = Math.min(tracker.global_x_scale + .05, 2.5);
       tracker.global_y_scale = Math.min(tracker.global_y_scale + .05, 2.5);
       tracker.global_z_scale = Math.min(tracker.global_z_scale + .05, 2.5);
       break;
     case "Minus":
+    case "189":
     case "NumpadSubtract":
+    case "109":
       tracker.global_x_scale = Math.max(tracker.global_x_scale - 0.05, 0.05);
       tracker.global_y_scale = Math.max(tracker.global_y_scale - 0.05, 0.05);
       tracker.global_z_scale = Math.max(tracker.global_z_scale - 0.05, 0.05);
       break;
     case "Digit1":
+    case "49":
       g_cattail_max_sway = 2;
       g_cattail_rate = 0.8;
       randomize_sway();
       break;
     case "Digit2":
+    case "50":
       g_cattail_max_sway = 3;
       g_cattail_rate = 1.6;
       randomize_sway();
       break;
     case "Digit3":
+    case "51":
       g_cattail_max_sway = 4;
       g_cattail_rate = 2.4;
       randomize_sway();
       break;
     case "Digit4":
+    case "52":
       g_cattail_max_sway = 5;
       g_cattail_rate = 3.2;
       randomize_sway();
       break;
     case "Digit5":
+    case "53":
       g_cattail_max_sway = 6;
       g_cattail_rate = 4.0;
       randomize_sway();
       break;
     case "Digit6":
+    case "54":
       g_cattail_max_sway = 7;
       g_cattail_rate = 4.8;
       randomize_sway();
       break;
     case "Digit7":
+    case "55":
       g_cattail_max_sway = 8;
       g_cattail_rate = 5.6;
       randomize_sway();
       break;
     case "Digit8":
+    case "56":
       g_cattail_max_sway = 9;
       g_cattail_rate = 6.4;
       randomize_sway();
       break;
     case "Digit9":
+    case "57":
       g_cattail_max_sway = 10;
       g_cattail_rate = 7.2;
       randomize_sway();
       break;
     case "Digit0":
+    case "48": // That's super annoying! Why is it 48?? Why not 58??
       g_cattail_max_sway = 11;
       g_cattail_rate = 8.0;
       randomize_sway();
       break;
     default:
-      console.log("Unused key: " + kev.code);
+      console.log("Unused key: " + code);
       break;
 	}
 }
