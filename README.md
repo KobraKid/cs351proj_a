@@ -18,7 +18,25 @@ To view this project, open `ProjA.html` in a supported browser.
 
 ### User Input
 
-- **TODO**
+Menus
+
+ - Press <code>/</code> to toggle the help menu
+ - Press <code>.</code> to toggle the GUI
+ - Use the GUI to inspect changes or manually tweak them
+
+Scene Navigation
+
+ - Press <code>W</code><code>A</code><code>S</code><code>D</code> or <code>↑</code><code>↓</code><code>←</code><code>→</code> to pan view
+ - Press <code>+</code> and <code>-</code> to zoom in / out
+ - Click and drag with the mouse to rotate view
+ - Press <code>P</code> to globally pause / unpause animation
+ - Press <code>R</code> to reset all user related manipulations
+
+Object Manipulation
+
+ - Press <code>1</code><code>2</code> ... <code>9</code><code>0</code> to change wind strength on cattails
+ - Move the mouse to have dragonflies follow the mouse cursor
+
 
 ## Authors
 
