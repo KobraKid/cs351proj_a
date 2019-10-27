@@ -441,16 +441,16 @@ function initVBO() {
     colors.push(.05, .10, .55, 1);
     colors.push(0.5, 0.7, 1, 0);
     colors.push(0.5, 0.7, 1, 0);
-    colors.push(.05, .40, .55, 1);
-    colors.push(.05, .40, .55, 1);
+    colors.push(.05, .10, .55, 1);
+    colors.push(51/255, 171/255, 249/255, 1);
     colors.push(0.5, 0.7, 1, 0);
     colors.push(0.5, 0.7, 1, 0);
+    colors.push(51/255, 171/255, 249/255, 1);
     colors.push(.05, .10, .55, 1);
     colors.push(.05, .10, .55, 1);
-    colors.push(.05, .40, .55, 1);
+    colors.push(51/255, 171/255, 249/255, 1);
     colors.push(0.5, 0.7, 1, 0)
-    colors.push(0.5, 0.7, 1, 0)
-    colors.push(.05, .40, .55, 1);
+    colors.push(.05, .10, .55, 1);
     colors.push(0.5, 0.7, 1, 0)
     colors.push(0.5, 0.7, 1, 0)
     colors.push(.05, .10, .55, 1);
