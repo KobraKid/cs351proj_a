@@ -475,19 +475,21 @@ function initVBO() {
    for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
      pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
      pos.push(Math.cos(theta), 1, Math.sin(theta), 1);
+     colors.push(.03, .13, (theta-.9*theta)%255, 1);
+     colors.push(.03, (.13*theta)%255, (theta-.7*theta)%255, 1);
 
    }
 
-   for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step*4) {
-		colors.push(.03, .13, .29, 1);
-		colors.push(.03, .13, .29, 1);
-   	colors.push(.05, .40, .55, 1);
-   	colors.push(.05, .40, .55, 1);
-		colors.push(.05, .23, .23, 1);
-		colors.push(.05, .23, .23, 1);
-		colors.push(.05, .23, .23, 1);
-		colors.push(.03, .13, .29, 1);
-	 }
+   //for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step*4) {
+	//	colors.push(.03, .13, .29, 1);
+	//	colors.push(.03, .13, .29, 1);
+   	//colors.push(.05, .40, .55, 1);
+   	//colors.push(.05, .40, .55, 1);
+	//	colors.push(.05, .23, .23, 1);
+	//	colors.push(.05, .23, .23, 1);
+	//	colors.push(.05, .23, .23, 1);
+	//	colors.push(.03, .13, .29, 1);
+	// } 
    while (colors.length > pos.length) {
      colors.pop();
    }
