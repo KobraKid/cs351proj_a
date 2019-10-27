@@ -29,6 +29,7 @@ Scene Navigation
  - Press <code>W</code><code>A</code><code>S</code><code>D</code> or <code>↑</code><code>↓</code><code>←</code><code>→</code> to pan view
  - Press <code>+</code> and <code>-</code> to zoom in / out
  - Click and drag with the mouse to rotate view
+ - Click with the mouse (no drag) to auto-rotate view
  - Press <code>P</code> to globally pause / unpause animation
  - Press <code>R</code> to reset all user related manipulations
 

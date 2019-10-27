@@ -479,23 +479,9 @@ function initVBO() {
      colors.push(.03, (.13*theta)%255, (theta-.7*theta)%255, 1);
 
    }
-
-   //for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step*4) {
-	//	colors.push(.03, .13, .29, 1);
-	//	colors.push(.03, .13, .29, 1);
-   	//colors.push(.05, .40, .55, 1);
-   	//colors.push(.05, .40, .55, 1);
-	//	colors.push(.05, .23, .23, 1);
-	//	colors.push(.05, .23, .23, 1);
-	//	colors.push(.05, .23, .23, 1);
-	//	colors.push(.03, .13, .29, 1);
-	// } 
-   while (colors.length > pos.length) {
+   while (colors.length > pos.length) { // Just in case, ran in to some trouble here earlier
      colors.pop();
    }
-
-   console.log(pos.length);
-   console.log(colors.length);
 
    // Cone Tip: {start: (g_step * 6) + 4, len: 1}
    pos.push(0, 1, 0, 1);
