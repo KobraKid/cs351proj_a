@@ -24,6 +24,7 @@ var sphereStart;
 var sphereLen;
 var sphereStart2;
 var sphereLen2;
+var is_spinning = false;
 
 // Animation vars
 var g_last = Date.now();
@@ -62,6 +63,8 @@ var tick = function() {
 var g_isDrag = false;
 var g_xMclik = 0.0;
 var g_yMclik = 0.0;
+var g_xMDown = 0.0;
+var g_yMDown = 0.0;
 var g_xMdragTot = 0.0;
 var g_yMdragTot = 0.0;
 var g_mouse_x = 1.0;
@@ -472,20 +475,26 @@ function initVBO() {
    for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step) {
      pos.push(Math.cos(theta), 0, Math.sin(theta), 1);
      pos.push(Math.cos(theta), 1, Math.sin(theta), 1);
- 
+
    }
 
    for (var theta = 0.0; theta < (2.0 * Math.PI) + (Math.PI/g_step); theta += Math.PI/g_step*4) {
 		colors.push(.03, .13, .29, 1);
 		colors.push(.03, .13, .29, 1);
-     	colors.push(.05, .40, .55, 1);
-     	colors.push(.05, .40, .55, 1);
+   	colors.push(.05, .40, .55, 1);
+   	colors.push(.05, .40, .55, 1);
 		colors.push(.05, .23, .23, 1);
 		colors.push(.05, .23, .23, 1);
 		colors.push(.05, .23, .23, 1);
 		colors.push(.03, .13, .29, 1);
+	 }
+   while (colors.length > pos.length) {
+     colors.pop();
+   }
 
-	}
+   console.log(pos.length);
+   console.log(colors.length);
+
    // Cone Tip: {start: (g_step * 6) + 4, len: 1}
    pos.push(0, 1, 0, 1);
    colors.push(.03, .13, .29, 1);
@@ -562,7 +571,7 @@ function draw() {
   ModelMatrix.setScale(g_aspect, 1, 1);
   ModelMatrix.translate(tracker.global_x_pos, tracker.global_y_pos, tracker.global_z_pos);
   ModelMatrix.rotate(tracker.global_x_rot, 1, 0, 0);
-  ModelMatrix.rotate(tracker.global_y_rot, 0, 1, 0);
+  ModelMatrix.rotate(tracker.global_y_rot + g_angle, 0, 1, 0);
   ModelMatrix.rotate(tracker.global_z_rot, 0, 0, 1);
   ModelMatrix.scale(tracker.global_x_scale, tracker.global_y_scale, tracker.global_z_scale);
 
@@ -865,7 +874,7 @@ function animate(angle) {
   var now = Date.now();
   var elapsed = now - g_last;
   g_last = now;
-  var newAngle = angle + (g_angle_rate * elapsed) / 1000.0;
+  var newAngle = angle + (g_angle_rate * elapsed) / 1000.0 * is_spinning;
   if(newAngle > 180.0) newAngle = newAngle - 360.0;
   if(newAngle <-180.0) newAngle = newAngle + 360.0;
   return newAngle;
@@ -933,6 +942,8 @@ function myMouseDown(ev) {
 	g_isDrag = true;
 	g_xMclik = x;
 	g_yMclik = y;
+	g_xMDown = x;
+	g_yMDown = y;
 }
 
 function myMouseMove(ev) {
@@ -971,6 +982,11 @@ function myMouseUp(ev) {
 	g_isDrag = false;
 	g_xMdragTot += (x - g_xMclik);
 	g_yMdragTot += (y - g_yMclik);
+
+  var drag_dist = Math.sqrt(Math.abs(Math.pow(g_yMDown - y, 2) * Math.pow(g_xMDown - x, 2)));
+  if (drag_dist == 0) { // The mouse hasn't moved, count as click and not drag
+    is_spinning = !is_spinning;
+  }
 }
 
 function myKeyDown(kev) {
