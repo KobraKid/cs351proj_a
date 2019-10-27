@@ -695,11 +695,11 @@ function drawDragonfly(d) {
   /* Group: Dragonfly */
   pushMatrix(ModelMatrix);
   ModelMatrix.translate(
-    (g_dragonflies[d][0] + g_dragonflies[d][2]) * Math.cos(tracker.global_y_rot * Math.PI / 180),
+    (g_dragonflies[d][0] + g_dragonflies[d][2]) * Math.cos((tracker.global_y_rot + g_angle) * Math.PI / 180),
     (g_dragonflies[d][1] + g_dragonflies[d][3]),
-    (g_dragonflies[d][0] + g_dragonflies[d][2]) * Math.sin(tracker.global_y_rot * Math.PI / 180));
+    (g_dragonflies[d][0] + g_dragonflies[d][2]) * Math.sin((tracker.global_y_rot + g_angle) * Math.PI / 180));
   ModelMatrix.scale(.1,.1,.1);
-  ModelMatrix.rotate(-tracker.global_y_rot, 0, 1, 0);
+  ModelMatrix.rotate(-(tracker.global_y_rot + g_angle), 0, 1, 0);
   ModelMatrix.rotate(-tracker.global_z_rot, 0, 0, 1);
   ModelMatrix.rotate(180 * dragonfly_x_move * 10, 0, 1, 0);
   ModelMatrix.rotate(180 * dragonfly_y_move * -10, 1, 0, 0);
